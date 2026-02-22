@@ -855,7 +855,7 @@
 
     // Force reconnection if needed
     setInterval(() => {
-      if (Date.now() - lastUpdateTime > 5000) {
+      if (Date.now() - lastUpdateTime > 100) {
         console.log('Forcing reconnection...');
         database.goOnline();
       }
@@ -863,3 +863,4 @@
   </script>
 </body>
 </html>
+
