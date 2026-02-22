@@ -2,193 +2,644 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>ESP32 Relay Control Dashboard</title>
+  <title>ESP32 Smart Home Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background-color: #f9f9f9;
+    * {
       margin: 0;
-      padding: 0 10px 40px;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0f2f5;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      min-height: 100vh;
-      justify-content: space-between;
     }
-    h1 {
-      margin-top: 30px;
-      font-size: 1.8rem;
-    }
-    .relay-card {
-      display: inline-block;
-      background-color: white;
+    
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
       padding: 20px;
-      margin: 15px;
-      border-radius: 15px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      width: 220px;
-      vertical-align: top;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
-    .relay-card h2 {
-      margin-bottom: 10px;
-      font-size: 1.3rem;
+    
+    .header h1 {
+      font-size: 2rem;
+      margin-bottom: 5px;
     }
-    .relay-card p {
-      margin-bottom: 10px;
+    
+    .header p {
       font-size: 1rem;
+      opacity: 0.9;
     }
-    .relay-card button {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 10px;
-      color: white;
-      background-color: blue;
-      cursor: pointer;
-      font-size: 16px;
-	  width: 90%;
-      transition: opacity 0.3s ease;
+    
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 20px;
+      flex: 1;
     }
-    .relay-card button:hover {
-      opacity: 0.8;
-    }
-    #allOffBtn, #logoutBtn {
-      max-width: 300px;
-      width: 90%;
-      padding: 12px 25px;
-      font-size: 16px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      margin: 15px auto;
-      display: block;
-      color: white;
-      transition: opacity 0.3s ease;
-    }
-    #allOffBtn {
-      background-color: #d32f2f;
-    }
-    #allOffBtn:hover {
-      opacity: 0.8;
-    }
-    #logoutBtn {
-      background-color: #555;
-    }
-    #logoutBtn:hover {
-      opacity: 0.8;
-    }
-
-    /* Responsive layout */
-    #dashboard {
-      display: none;
-    }
+    
+    /* Login Form */
     #loginForm {
       max-width: 400px;
-      margin: 80px auto 20px;
+      margin: 50px auto;
       background: white;
-      padding: 30px 20px;
-      border-radius: 15px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      padding: 40px 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      animation: slideUp 0.5s ease;
     }
+    
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    #loginForm h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+      font-size: 1.8rem;
+    }
+    
     #loginForm input {
       width: 100%;
-      padding: 12px 15px;
+      padding: 15px;
       margin: 10px 0 20px;
-      font-size: 1rem;
-      border: 1.5px solid #ccc;
+      border: 2px solid #e0e0e0;
       border-radius: 10px;
-      box-sizing: border-box;
-      outline-offset: 2px;
-      transition: border-color 0.3s ease;
+      font-size: 1rem;
+      transition: all 0.3s;
     }
+    
     #loginForm input:focus {
-      border-color: #1e88e5;
+      border-color: #667eea;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
-    #loginForm button {
+    
+    #loginForm label {
+      font-weight: 600;
+      color: #555;
+      display: block;
+      text-align: left;
+    }
+    
+    #loginBtn {
       width: 100%;
-      background-color: #1e88e5;
+      padding: 15px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
-      padding: 12px;
-      font-size: 18px;
       border: none;
       border-radius: 10px;
+      font-size: 1.1rem;
+      font-weight: 600;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      transition: transform 0.2s, box-shadow 0.2s;
     }
-    #loginForm button:hover {
-      background-color: #1565c0;
+    
+    #loginBtn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
     }
-    #dashboard .relay-container {
-      max-width: 960px;
-      margin: 20px auto 0;
+    
+    #loginBtn:active {
+      transform: translateY(0);
+    }
+    
+    /* Dashboard */
+    #dashboard {
+      display: none;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+    
+    .section-title {
+      font-size: 1.5rem;
+      color: #333;
+      margin: 30px 0 20px;
+      padding-bottom: 10px;
+      border-bottom: 3px solid #667eea;
+      display: inline-block;
+    }
+    
+    .relay-grid, .sensor-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      transition: transform 0.3s, box-shadow 0.3s;
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    
+    .card h3 {
+      color: #444;
+      margin-bottom: 15px;
+      font-size: 1.2rem;
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
+      align-items: center;
+      gap: 10px;
     }
-    /* Smaller devices */
-    @media (max-width: 700px) {
-      .relay-card {
-        width: 90%;
-        margin: 10px auto;
-        display: block;
-      }
-      body {
-        padding: 0 10px 60px;
-      }
+    
+    .card h3 i {
+      color: #667eea;
     }
-    footer {
+    
+    .status-badge {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 20px;
       font-size: 0.9rem;
+      font-weight: 600;
+    }
+    
+    .status-on {
+      background: #4caf50;
+      color: white;
+    }
+    
+    .status-off {
+      background: #f44336;
+      color: white;
+    }
+    
+    .toggle-btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 15px;
+    }
+    
+    .toggle-btn.on {
+      background: #4caf50;
+      color: white;
+    }
+    
+    .toggle-btn.on:hover {
+      background: #45a049;
+      box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+    }
+    
+    .toggle-btn.off {
+      background: #f44336;
+      color: white;
+    }
+    
+    .toggle-btn.off:hover {
+      background: #da190b;
+      box-shadow: 0 5px 15px rgba(244, 67, 54, 0.3);
+    }
+    
+    .sensor-value {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #333;
+      text-align: center;
+      margin: 15px 0;
+    }
+    
+    .sensor-unit {
+      font-size: 1rem;
+      color: #888;
+      margin-left: 5px;
+    }
+    
+    .water-level-bar {
+      width: 100%;
+      height: 30px;
+      background: #e0e0e0;
+      border-radius: 15px;
+      margin: 15px 0;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .water-level-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #2196f3, #64b5f6);
+      border-radius: 15px;
+      transition: width 0.5s ease;
+      width: 0%;
+    }
+    
+    .water-level-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #000;
+      font-weight: bold;
+      text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
+    }
+    
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    
+    .led {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      transition: all 0.3s;
+    }
+    
+    .led.active {
+      background: #4caf50;
+      box-shadow: 0 0 10px #4caf50;
+      animation: pulse 1s infinite;
+    }
+    
+    .led.inactive {
+      background: #ccc;
+    }
+    
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+      }
+    }
+    
+    .auto-switch {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 15px 0;
+      padding: 10px;
+      background: #f8f9fa;
+      border-radius: 10px;
+    }
+    
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+    }
+    
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 34px;
+    }
+    
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    
+    input:checked + .slider {
+      background-color: #2196f3;
+    }
+    
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+    
+    .action-btn {
+      padding: 12px 30px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin: 10px;
+    }
+    
+    .action-btn.primary {
+      background: #d32f2f;
+      color: white;
+    }
+    
+    .action-btn.primary:hover {
+      background: #b71c1c;
+      box-shadow: 0 5px 15px rgba(211, 47, 47, 0.3);
+    }
+    
+    .action-btn.secondary {
+      background: #555;
+      color: white;
+    }
+    
+    .action-btn.secondary:hover {
+      background: #333;
+    }
+    
+    .button-group {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin: 30px 0;
+    }
+    
+    footer {
+      text-align: center;
+      padding: 20px;
       color: #666;
-      padding: 10px 0;
+      font-size: 0.9rem;
+      border-top: 1px solid #e0e0e0;
       margin-top: 40px;
     }
+    
+    .connection-status {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      z-index: 1000;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .status-connected {
+      background: #4caf50;
+      color: white;
+    }
+    
+    .status-disconnected {
+      background: #f44336;
+      color: white;
+    }
+    
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 1.5rem;
+      }
+      
+      .section-title {
+        font-size: 1.2rem;
+      }
+      
+      .button-group {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .action-btn {
+        width: 90%;
+        margin: 5px 0;
+      }
+    }
   </style>
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
+  <div class="header">
+    <h1>🏠 ESP32 Smart Home Dashboard</h1>
+    <p>Real-time Sensor Monitoring & Relay Control</p>
+  </div>
 
-  <h1>ESP32 Relay Control Dashboard</h1>
+  <!-- Connection Status -->
+  <div id="connectionStatus" class="connection-status status-disconnected">
+    <i class="fas fa-circle"></i> Connecting...
+  </div>
 
-  <!-- Login form -->
-  <div id="loginForm">
-    <input type="email" id="email" placeholder="Enter Email" required />
-    <input type="password" id="password" placeholder="Enter Password" required />
-    <button id="loginBtn">Login</button>
+  <!-- Login Form -->
+  <div id="loginForm" class="container">
+    <h2><i class="fas fa-lock"></i> Login to Dashboard</h2>
+    <form onsubmit="event.preventDefault();">
+      <label for="email"><i class="fas fa-envelope"></i> Email</label>
+      <input type="email" id="email" placeholder="Enter your email" value="san@gmail.com" required />
+      
+      <label for="password"><i class="fas fa-key"></i> Password</label>
+      <input type="password" id="password" placeholder="Enter your password" value="san@123" required />
+      
+      <button type="button" id="loginBtn">
+        <i class="fas fa-sign-in-alt"></i> Login
+      </button>
+    </form>
   </div>
 
   <!-- Dashboard -->
-  <div id="dashboard">
-    <div class="relay-container">
-      <div class="relay-card">
-        <h2>Relay 1</h2>
-        <p>Status: <span id="status1">Loading...</span></p>
-        <button id="btn1">Toggle</button>
+  <div id="dashboard" class="container">
+    <!-- Relay Controls -->
+    <h2 class="section-title"><i class="fas fa-plug"></i> Relay Controls</h2>
+    <div class="relay-grid">
+      <div class="card">
+        <h3><i class="fas fa-lightbulb" style="color: #f1c40f;"></i> Light (Relay 1)</h3>
+        <div class="status-indicator">
+          <div id="relay1Led" class="led inactive"></div>
+          <span id="relay1Status">Loading...</span>
+        </div>
+        <button id="relay1Btn" class="toggle-btn off">Toggle Light</button>
       </div>
 
-      <div class="relay-card">
-        <h2>Relay 2</h2>
-        <p>Status: <span id="status2">Loading...</span></p>
-        <button id="btn2">Toggle</button>
+      <div class="card">
+        <h3><i class="fas fa-fan" style="color: #3498db;"></i> Fan (Relay 2)</h3>
+        <div class="status-indicator">
+          <div id="relay2Led" class="led inactive"></div>
+          <span id="relay2Status">Loading...</span>
+        </div>
+        <button id="relay2Btn" class="toggle-btn off">Toggle Fan</button>
+        <div class="auto-switch">
+          <span><i class="fas fa-sun"></i> LDR Auto Mode</span>
+          <label class="switch">
+            <input type="checkbox" id="ldrAutoSwitch">
+            <span class="slider"></span>
+          </label>
+        </div>
       </div>
 
-      <div class="relay-card">
-        <h2>Relay 3</h2>
-        <p>Status: <span id="status3">Loading...</span></p>
-        <button id="btn3">Toggle</button>
+      <div class="card">
+        <h3><i class="fas fa-water" style="color: #3498db;"></i> Motor (Relay 3)</h3>
+        <div class="status-indicator">
+          <div id="relay3Led" class="led inactive"></div>
+          <span id="relay3Status">Loading...</span>
+        </div>
+        <button id="relay3Btn" class="toggle-btn off">Toggle Motor</button>
+        <div class="auto-switch">
+          <span><i class="fas fa-robot"></i> Motor Auto Mode</span>
+          <label class="switch">
+            <input type="checkbox" id="motorAutoSwitch" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
       </div>
 
-      <div class="relay-card">
-        <h2>Relay 4</h2>
-        <p>Status: <span id="status4">Loading...</span></p>
-        <button id="btn4">Toggle</button>
+      <div class="card">
+        <h3><i class="fas fa-bolt" style="color: #f39c12;"></i> Relay 4</h3>
+        <div class="status-indicator">
+          <div id="relay4Led" class="led inactive"></div>
+          <span id="relay4Status">Loading...</span>
+        </div>
+        <button id="relay4Btn" class="toggle-btn off">Toggle Relay 4</button>
       </div>
     </div>
 
-    <button id="allOffBtn">All OFF</button>
-    <button id="logoutBtn">Logout</button>
+    <!-- Environmental Sensors -->
+    <h2 class="section-title"><i class="fas fa-temperature-high"></i> Environmental Sensors</h2>
+    <div class="sensor-grid">
+      <div class="card">
+        <h3><i class="fas fa-thermometer-half"></i> Temperature</h3>
+        <div class="sensor-value" id="temperature">--<span class="sensor-unit">°C</span></div>
+      </div>
+
+      <div class="card">
+        <h3><i class="fas fa-tint"></i> Humidity</h3>
+        <div class="sensor-value" id="humidity">--<span class="sensor-unit">%</span></div>
+      </div>
+
+      <div class="card">
+        <h3><i class="fas fa-sun"></i> Light Level</h3>
+        <div class="sensor-value" id="lightLevel">--<span class="sensor-unit">%</span></div>
+      </div>
+
+      <div class="card">
+        <h3><i class="fas fa-water"></i> Water Level</h3>
+        <div class="water-level-bar">
+          <div class="water-level-fill" id="waterLevelFill" style="width: 0%;"></div>
+          <span class="water-level-text" id="waterLevelText">0%</span>
+        </div>
+        <div class="status-indicator">
+          <div id="waterAlertLed" class="led inactive"></div>
+          <span id="waterAlert">Normal</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Safety Sensors -->
+    <h2 class="section-title"><i class="fas fa-exclamation-triangle"></i> Safety Sensors</h2>
+    <div class="sensor-grid">
+      <div class="card">
+        <h3><i class="fas fa-person-walking"></i> Motion</h3>
+        <div class="status-indicator">
+          <div id="motionLed" class="led inactive"></div>
+          <span id="motion">No Motion</span>
+        </div>
+        <div class="auto-switch">
+          <span><i class="fas fa-robot"></i> Motion Auto Mode</span>
+          <label class="switch">
+            <input type="checkbox" id="motionAutoSwitch">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3><i class="fas fa-cloud-rain"></i> Rain</h3>
+        <div class="status-indicator">
+          <div id="rainLed" class="led inactive"></div>
+          <span id="rain">No Rain</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3><i class="fas fa-smog"></i> Smoke</h3>
+        <div class="status-indicator">
+          <div id="smokeLed" class="led inactive"></div>
+          <span id="smoke">Normal</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3><i class="fas fa-fire"></i> Fire</h3>
+        <div class="status-indicator">
+          <div id="fireLed" class="led inactive"></div>
+          <span id="fire">Normal</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3><i class="fas fa-bell"></i> Vibration</h3>
+        <div class="status-indicator">
+          <div id="vibrationLed" class="led inactive"></div>
+          <span id="vibration">Normal</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3><i class="fas fa-volume-up"></i> Buzzer</h3>
+        <div class="status-indicator">
+          <div id="buzzerLed" class="led inactive"></div>
+          <span id="buzzerStatus">OFF</span>
+        </div>
+        <button id="buzzerBtn" class="toggle-btn off">Toggle Buzzer</button>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="button-group">
+      <button id="allOffBtn" class="action-btn primary">
+        <i class="fas fa-power-off"></i> All OFF
+      </button>
+      <button id="logoutBtn" class="action-btn secondary">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </button>
+    </div>
   </div>
 
   <footer>
-    Created by Tech StudyCell
+    Created by Tech StudyCell | ESP32 Smart Home System
   </footer>
 
   <!-- Firebase SDKs -->
@@ -197,102 +648,284 @@
   <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
 
   <script>
-    // Firebase config
+    // Firebase configuration
     const firebaseConfig = {
-  apiKey: "AIzaSyCLdL4teSGiF8f0M5q9LaXoXd1mPoq9lMY",
-  authDomain: "smart-home-dd7e5.firebaseapp.com",
-  databaseURL: "https://smart-home-dd7e5-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "smart-home-dd7e5",
-  storageBucket: "smart-home-dd7e5.firebasestorage.app",
-  messagingSenderId: "230561792370",
-  appId: "1:230561792370:web:f951f576564cb076401deb"
-};
+      apiKey: "AIzaSyCLdL4teSGiF8f0M5q9LaXoXd1mPoq9lMY",
+      authDomain: "smart-home-dd7e5.firebaseapp.com",
+      databaseURL: "https://smart-home-dd7e5-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "smart-home-dd7e5",
+      storageBucket: "smart-home-dd7e5.firebasestorage.app",
+      messagingSenderId: "230561792370",
+      appId: "1:230561792370:web:f951f576564cb076401deb"
+    };
 
+    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    const auth = firebase.auth();
 
-    // Predefined login credentials (can be replaced with your logic)
+    // DOM Elements
+    const loginForm = document.getElementById('loginForm');
+    const dashboard = document.getElementById('dashboard');
+    const loginBtn = document.getElementById('loginBtn');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const connectionStatus = document.getElementById('connectionStatus');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const allOffBtn = document.getElementById('allOffBtn');
+
+    // Predefined credentials
     const allowedEmail = "san@gmail.com";
     const allowedPassword = "san@123";
 
-    const loginForm = document.getElementById("loginForm");
-    const dashboard = document.getElementById("dashboard");
-    const loginBtn = document.getElementById("loginBtn");
-
-    loginBtn.addEventListener("click", () => {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
-
-      if (!email || !password) {
-        alert("Please enter email and password.");
-        return;
-      }
-
-      // Check hardcoded credentials first
-      if(email === allowedEmail && password === allowedPassword){
-        // Sign in with Firebase
-        firebase.auth().signInWithEmailAndPassword(email, password)
-          .then(userCredential => {
-            console.log("Signed in as", userCredential.user.email);
-            loginForm.style.display = "none";
-            dashboard.style.display = "block";
-            startRelayControl();
-          })
-          .catch(error => {
-            alert("Firebase login failed: " + error.message);
-          });
+    // Check auth state on load
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        loginForm.style.display = 'none';
+        dashboard.style.display = 'block';
+        startDashboard();
+        updateConnectionStatus(true);
       } else {
-        alert("Invalid email or password.");
+        loginForm.style.display = 'block';
+        dashboard.style.display = 'none';
+        updateConnectionStatus(false);
       }
     });
 
-    function startRelayControl() {
-      const db = firebase.database();
+    // Login function
+    loginBtn.addEventListener('click', () => {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
 
-      const relays = [
-        { id: 1, path: "relay1" },
-        { id: 2, path: "relay2" },
-        { id: 3, path: "relay3" },
-        { id: 4, path: "relay4" },
-      ];
+      if (!email || !password) {
+        alert('Please enter email and password');
+        return;
+      }
 
-      relays.forEach(relay => {
-        const statusText = document.getElementById(`status${relay.id}`);
-        const toggleButton = document.getElementById(`btn${relay.id}`);
-        const relayRef = db.ref("/" + relay.path);
-
-        relayRef.on("value", (snapshot) => {
-          const state = snapshot.val();
-          statusText.innerText = state ? "ON" : "OFF";
-          toggleButton.style.backgroundColor = state ? "green" : "blue";
-        });
-
-        toggleButton.onclick = () => {
-          relayRef.get().then(snap => {
-            relayRef.set(!snap.val());
+      if (email === allowedEmail && password === allowedPassword) {
+        auth.signInWithEmailAndPassword(email, password)
+          .then(() => {
+            console.log('Logged in successfully');
+          })
+          .catch(error => {
+            alert('Login failed: ' + error.message);
           });
-        };
-      });
+      } else {
+        alert('Invalid email or password');
+      }
+    });
 
-      document.getElementById("allOffBtn").onclick = () => {
-        relays.forEach(relay => {
-          db.ref("/" + relay.path).set(false);
-        });
-      };
+    // Update connection status
+    function updateConnectionStatus(connected) {
+      if (connected) {
+        connectionStatus.className = 'connection-status status-connected';
+        connectionStatus.innerHTML = '<i class="fas fa-circle"></i> Connected to Firebase';
+      } else {
+        connectionStatus.className = 'connection-status status-disconnected';
+        connectionStatus.innerHTML = '<i class="fas fa-circle"></i> Disconnected';
+      }
     }
 
-    document.getElementById("logoutBtn").onclick = () => {
-      firebase.auth().signOut()
+    // Start dashboard functionality
+    function startDashboard() {
+      // Relay references
+      const relays = [
+        { id: 1, name: 'Light' },
+        { id: 2, name: 'Fan' },
+        { id: 3, name: 'Motor' },
+        { id: 4, name: 'Relay4' }
+      ];
+
+      // Monitor relay states
+      relays.forEach(relay => {
+        const statusEl = document.getElementById(`relay${relay.id}Status`);
+        const ledEl = document.getElementById(`relay${relay.id}Led`);
+        const btnEl = document.getElementById(`relay${relay.id}Btn`);
+
+        database.ref(`/relay${relay.id}`).on('value', snapshot => {
+          const state = snapshot.val();
+          statusEl.textContent = state ? 'ON' : 'OFF';
+          
+          if (state) {
+            ledEl.className = 'led active';
+            btnEl.className = 'toggle-btn on';
+            btnEl.innerHTML = `<i class="fas fa-power-off"></i> Turn ${relay.name} OFF`;
+          } else {
+            ledEl.className = 'led inactive';
+            btnEl.className = 'toggle-btn off';
+            btnEl.innerHTML = `<i class="fas fa-power-off"></i> Turn ${relay.name} ON`;
+          }
+        });
+
+        btnEl.addEventListener('click', () => {
+          database.ref(`/relay${relay.id}`).transaction(state => !state);
+        });
+      });
+
+      // Monitor sensors
+      database.ref('/sensors').on('value', snapshot => {
+        const data = snapshot.val();
+        if (!data) return;
+
+        // Temperature
+        document.getElementById('temperature').innerHTML = 
+          (data.temperature || 0).toFixed(1) + '<span class="sensor-unit">°C</span>';
+
+        // Humidity
+        document.getElementById('humidity').innerHTML = 
+          (data.humidity || 0).toFixed(1) + '<span class="sensor-unit">%</span>';
+
+        // Light Level
+        document.getElementById('lightLevel').innerHTML = 
+          (data.light || 0) + '<span class="sensor-unit">%</span>';
+
+        // Water Level
+        const waterLevel = data.water || 0;
+        document.getElementById('waterLevelFill').style.width = waterLevel + '%';
+        document.getElementById('waterLevelText').textContent = waterLevel + '%';
+        
+        const waterAlertEl = document.getElementById('waterAlert');
+        const waterAlertLed = document.getElementById('waterAlertLed');
+        if (waterLevel < 20) {
+          waterAlertEl.textContent = 'LOW WATER - Critical';
+          waterAlertLed.className = 'led active';
+        } else if (waterLevel > 90) {
+          waterAlertEl.textContent = 'HIGH WATER';
+          waterAlertLed.className = 'led active';
+        } else {
+          waterAlertEl.textContent = 'Normal';
+          waterAlertLed.className = 'led inactive';
+        }
+
+        // Motion
+        const motionEl = document.getElementById('motion');
+        const motionLed = document.getElementById('motionLed');
+        if (data.motion) {
+          motionEl.textContent = 'Motion Detected!';
+          motionLed.className = 'led active';
+        } else {
+          motionEl.textContent = 'No Motion';
+          motionLed.className = 'led inactive';
+        }
+
+        // Rain
+        const rainEl = document.getElementById('rain');
+        const rainLed = document.getElementById('rainLed');
+        if (data.rain) {
+          rainEl.textContent = 'Rain Detected!';
+          rainLed.className = 'led active';
+        } else {
+          rainEl.textContent = 'No Rain';
+          rainLed.className = 'led inactive';
+        }
+
+        // Smoke
+        const smokeEl = document.getElementById('smoke');
+        const smokeLed = document.getElementById('smokeLed');
+        if (data.smoke) {
+          smokeEl.textContent = 'SMOKE DETECTED!';
+          smokeLed.className = 'led active';
+        } else {
+          smokeEl.textContent = 'Normal';
+          smokeLed.className = 'led inactive';
+        }
+
+        // Fire
+        const fireEl = document.getElementById('fire');
+        const fireLed = document.getElementById('fireLed');
+        if (data.fire) {
+          fireEl.textContent = 'FIRE DETECTED!';
+          fireLed.className = 'led active';
+        } else {
+          fireEl.textContent = 'Normal';
+          fireLed.className = 'led inactive';
+        }
+
+        // Vibration
+        const vibrationEl = document.getElementById('vibration');
+        const vibrationLed = document.getElementById('vibrationLed');
+        if (data.vibration) {
+          vibrationEl.textContent = 'Vibration Detected!';
+          vibrationLed.className = 'led active';
+        } else {
+          vibrationEl.textContent = 'Normal';
+          vibrationLed.className = 'led inactive';
+        }
+      });
+
+      // Monitor auto modes
+      database.ref('/auto').on('value', snapshot => {
+        const data = snapshot.val() || {};
+        
+        document.getElementById('motionAutoSwitch').checked = data.motion || false;
+        document.getElementById('ldrAutoSwitch').checked = data.ldr || false;
+        document.getElementById('motorAutoSwitch').checked = data.motor || true;
+      });
+
+      // Auto mode switches
+      document.getElementById('motionAutoSwitch').addEventListener('change', e => {
+        database.ref('/auto/motion').set(e.target.checked);
+      });
+
+      document.getElementById('ldrAutoSwitch').addEventListener('change', e => {
+        database.ref('/auto/ldr').set(e.target.checked);
+      });
+
+      document.getElementById('motorAutoSwitch').addEventListener('change', e => {
+        database.ref('/auto/motor').set(e.target.checked);
+      });
+
+      // Buzzer control
+      const buzzerBtn = document.getElementById('buzzerBtn');
+      database.ref('/buzzer').on('value', snapshot => {
+        const state = snapshot.val() || false;
+        const buzzerLed = document.getElementById('buzzerLed');
+        const buzzerStatus = document.getElementById('buzzerStatus');
+        
+        if (state) {
+          buzzerLed.className = 'led active';
+          buzzerStatus.textContent = 'ON';
+          buzzerBtn.className = 'toggle-btn on';
+          buzzerBtn.innerHTML = '<i class="fas fa-volume-up"></i> Turn Buzzer OFF';
+        } else {
+          buzzerLed.className = 'led inactive';
+          buzzerStatus.textContent = 'OFF';
+          buzzerBtn.className = 'toggle-btn off';
+          buzzerBtn.innerHTML = '<i class="fas fa-volume-up"></i> Turn Buzzer ON';
+        }
+      });
+
+      buzzerBtn.addEventListener('click', () => {
+        database.ref('/buzzer').transaction(state => !state);
+      });
+
+      // All OFF button
+      allOffBtn.addEventListener('click', () => {
+        if (confirm('Turn all relays OFF?')) {
+          database.ref('/relay1').set(false);
+          database.ref('/relay2').set(false);
+          database.ref('/relay3').set(false);
+          database.ref('/relay4').set(false);
+        }
+      });
+    }
+
+    // Logout function
+    logoutBtn.addEventListener('click', () => {
+      auth.signOut()
         .then(() => {
-          dashboard.style.display = "none";
-          loginForm.style.display = "block";
-          document.getElementById("email").value = "";
-          document.getElementById("password").value = "";
+          emailInput.value = '';
+          passwordInput.value = '';
         })
         .catch(error => {
-          alert("Logout failed: " + error.message);
+          alert('Logout failed: ' + error.message);
         });
-    };
+    });
+
+    // Monitor connection
+    database.ref('.info/connected').on('value', snapshot => {
+      updateConnectionStatus(snapshot.val() === true);
+    });
   </script>
 </body>
-
 </html>
