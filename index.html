@@ -148,12 +148,7 @@
       border-radius: 15px;
       padding: 20px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-      transition: transform 0.2s, box-shadow 0.2s;
       border: 1px solid rgba(0,0,0,0.05);
-    }
-    
-    .card:active {
-      transform: scale(0.98);
     }
     
     .card h3 {
@@ -181,6 +176,8 @@
       height: 12px;
       border-radius: 50%;
       transition: all 0.1s;
+      display: inline-block;
+      margin-right: 5px;
     }
     
     .led.active {
@@ -192,35 +189,122 @@
       background: #ccc;
     }
     
-    .toggle-btn {
-      width: 100%;
-      padding: 15px;
-      border: none;
+    /* Toggle Switch (for relays) */
+    .relay-switch {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 15px 0;
+      padding: 10px;
+      background: #f8f9fa;
       border-radius: 10px;
-      font-size: 1rem;
-      font-weight: 600;
+    }
+    
+    .switch-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .relay-toggle {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 30px;
+    }
+    
+    .relay-toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    
+    .relay-slider {
+      position: absolute;
       cursor: pointer;
-      transition: all 0.1s;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #f44336;
+      transition: .1s;
+      border-radius: 30px;
+    }
+    
+    .relay-slider:before {
+      position: absolute;
+      content: "";
+      height: 24px;
+      width: 24px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .1s;
+      border-radius: 50%;
+    }
+    
+    input:checked + .relay-slider {
+      background-color: #4caf50;
+    }
+    
+    input:checked + .relay-slider:before {
+      transform: translateX(30px);
+    }
+    
+    /* Auto mode switch (smaller) */
+    .auto-switch {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       margin: 10px 0;
-      color: white;
+      padding: 8px;
+      background: #f0f0f0;
+      border-radius: 8px;
     }
     
-    .toggle-btn.on {
-      background: #4caf50;
+    .auto-toggle {
+      position: relative;
+      display: inline-block;
+      width: 46px;
+      height: 24px;
     }
     
-    .toggle-btn.on:active {
-      background: #45a049;
-      transform: scale(0.98);
+    .auto-toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
     }
     
-    .toggle-btn.off {
-      background: #f44336;
+    .auto-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .1s;
+      border-radius: 24px;
     }
     
-    .toggle-btn.off:active {
-      background: #da190b;
-      transform: scale(0.98);
+    .auto-slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .1s;
+      border-radius: 50%;
+    }
+    
+    input:checked + .auto-slider {
+      background-color: #2196f3;
+    }
+    
+    input:checked + .auto-slider:before {
+      transform: translateX(22px);
     }
     
     .sensor-value {
@@ -229,6 +313,12 @@
       color: #333;
       text-align: center;
       margin: 15px 0;
+    }
+    
+    .sensor-unit {
+      font-size: 1rem;
+      color: #888;
+      margin-left: 5px;
     }
     
     .water-level-container {
@@ -262,61 +352,6 @@
       font-weight: bold;
       text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
       z-index: 2;
-    }
-    
-    .auto-switch {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin: 15px 0;
-      padding: 10px;
-      background: #f8f9fa;
-      border-radius: 10px;
-    }
-    
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 50px;
-      height: 24px;
-    }
-    
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-    
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #ccc;
-      transition: .2s;
-      border-radius: 24px;
-    }
-    
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 18px;
-      width: 18px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: .2s;
-      border-radius: 50%;
-    }
-    
-    input:checked + .slider {
-      background-color: #2196f3;
-    }
-    
-    input:checked + .slider:before {
-      transform: translateX(26px);
     }
     
     .action-btn {
@@ -361,7 +396,6 @@
       font-weight: 600;
       z-index: 1000;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      transition: all 0.2s;
     }
     
     .status-connected {
@@ -375,9 +409,11 @@
     }
     
     .latency-badge {
-      font-size: 0.7rem;
-      margin-left: 5px;
-      opacity: 0.8;
+      font-size: 0.8rem;
+      margin-left: 10px;
+      padding: 4px 8px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 20px;
     }
     
     footer {
@@ -387,6 +423,19 @@
       font-size: 0.9rem;
       border-top: 1px solid #e0e0e0;
       margin-top: 40px;
+    }
+    
+    /* Status text */
+    .status-text {
+      font-weight: 600;
+    }
+    
+    .status-text.on {
+      color: #4caf50;
+    }
+    
+    .status-text.off {
+      color: #f44336;
     }
     
     @media (max-width: 768px) {
@@ -400,7 +449,7 @@
 <body>
   <div class="header">
     <h1>🏠 ESP32 Smart Home Dashboard</h1>
-    <p>Real-time Control & Monitoring <span id="latencyDisplay" style="font-size:0.8rem; background:rgba(255,255,255,0.2); padding:4px 8px; border-radius:20px; margin-left:10px;"></span></p>
+    <p>Real-time Control & Monitoring <span id="latencyDisplay" class="latency-badge">⏱️ 0ms</span></p>
   </div>
 
   <!-- Connection Status -->
@@ -423,59 +472,109 @@
   <!-- Dashboard -->
   <div id="dashboard" class="container">
     <!-- Relays -->
-    <h2 class="section-title"><i class="fas fa-plug"></i> Relays</h2>
+    <h2 class="section-title"><i class="fas fa-plug"></i> Relay Controls</h2>
     <div class="relay-grid">
-      <!-- Relay 1 -->
+      <!-- Relay 1 - Light -->
       <div class="card">
-        <h3><i class="fas fa-lightbulb" style="color: #f1c40f;"></i> Light</h3>
+        <h3><i class="fas fa-lightbulb" style="color: #f1c40f;"></i> Light (Relay 1)</h3>
         <div class="status-row">
-          <span>Status:</span>
-          <span><span id="relay1Led" class="led inactive"></span> <span id="relay1Status">OFF</span></span>
+          <span><i class="fas fa-info-circle"></i> Status:</span>
+          <span>
+            <span id="relay1Led" class="led inactive"></span>
+            <span id="relay1Status" class="status-text off">OFF</span>
+          </span>
         </div>
-        <button id="relay1Btn" class="toggle-btn off">Toggle Light</button>
+        <div class="relay-switch">
+          <span class="switch-label">
+            <i class="fas fa-toggle-on"></i> Control Switch
+          </span>
+          <label class="relay-toggle">
+            <input type="checkbox" id="relay1Switch">
+            <span class="relay-slider"></span>
+          </label>
+        </div>
       </div>
 
-      <!-- Relay 2 -->
+      <!-- Relay 2 - Fan -->
       <div class="card">
-        <h3><i class="fas fa-fan" style="color: #3498db;"></i> Fan</h3>
+        <h3><i class="fas fa-fan" style="color: #3498db;"></i> Fan (Relay 2)</h3>
         <div class="status-row">
-          <span>Status:</span>
-          <span><span id="relay2Led" class="led inactive"></span> <span id="relay2Status">OFF</span></span>
+          <span><i class="fas fa-info-circle"></i> Status:</span>
+          <span>
+            <span id="relay2Led" class="led inactive"></span>
+            <span id="relay2Status" class="status-text off">OFF</span>
+          </span>
         </div>
-        <button id="relay2Btn" class="toggle-btn off">Toggle Fan</button>
+        <div class="relay-switch">
+          <span class="switch-label">
+            <i class="fas fa-toggle-on"></i> Control Switch
+          </span>
+          <label class="relay-toggle">
+            <input type="checkbox" id="relay2Switch">
+            <span class="relay-slider"></span>
+          </label>
+        </div>
         <div class="auto-switch">
-          <span><i class="fas fa-sun"></i> LDR Auto</span>
-          <label class="switch"><input type="checkbox" id="ldrAutoSwitch"><span class="slider"></span></label>
+          <span><i class="fas fa-sun"></i> LDR Auto Mode</span>
+          <label class="auto-toggle">
+            <input type="checkbox" id="ldrAutoSwitch">
+            <span class="auto-slider"></span>
+          </label>
         </div>
       </div>
 
-      <!-- Relay 3 -->
+      <!-- Relay 3 - Motor -->
       <div class="card">
-        <h3><i class="fas fa-water" style="color: #3498db;"></i> Motor</h3>
+        <h3><i class="fas fa-water" style="color: #3498db;"></i> Motor (Relay 3)</h3>
         <div class="status-row">
-          <span>Status:</span>
-          <span><span id="relay3Led" class="led inactive"></span> <span id="relay3Status">OFF</span></span>
+          <span><i class="fas fa-info-circle"></i> Status:</span>
+          <span>
+            <span id="relay3Led" class="led inactive"></span>
+            <span id="relay3Status" class="status-text off">OFF</span>
+          </span>
         </div>
-        <button id="relay3Btn" class="toggle-btn off">Toggle Motor</button>
+        <div class="relay-switch">
+          <span class="switch-label">
+            <i class="fas fa-toggle-on"></i> Control Switch
+          </span>
+          <label class="relay-toggle">
+            <input type="checkbox" id="relay3Switch">
+            <span class="relay-slider"></span>
+          </label>
+        </div>
         <div class="auto-switch">
-          <span><i class="fas fa-robot"></i> Motor Auto</span>
-          <label class="switch"><input type="checkbox" id="motorAutoSwitch" checked><span class="slider"></span></label>
+          <span><i class="fas fa-robot"></i> Motor Auto Mode</span>
+          <label class="auto-toggle">
+            <input type="checkbox" id="motorAutoSwitch" checked>
+            <span class="auto-slider"></span>
+          </label>
         </div>
       </div>
 
-      <!-- Relay 4 -->
+      <!-- Relay 4 - Extra -->
       <div class="card">
         <h3><i class="fas fa-bolt" style="color: #f39c12;"></i> Relay 4</h3>
         <div class="status-row">
-          <span>Status:</span>
-          <span><span id="relay4Led" class="led inactive"></span> <span id="relay4Status">OFF</span></span>
+          <span><i class="fas fa-info-circle"></i> Status:</span>
+          <span>
+            <span id="relay4Led" class="led inactive"></span>
+            <span id="relay4Status" class="status-text off">OFF</span>
+          </span>
         </div>
-        <button id="relay4Btn" class="toggle-btn off">Toggle Relay 4</button>
+        <div class="relay-switch">
+          <span class="switch-label">
+            <i class="fas fa-toggle-on"></i> Control Switch
+          </span>
+          <label class="relay-toggle">
+            <input type="checkbox" id="relay4Switch">
+            <span class="relay-slider"></span>
+          </label>
+        </div>
       </div>
     </div>
 
     <!-- Environmental Sensors -->
-    <h2 class="section-title"><i class="fas fa-temperature-high"></i> Environment</h2>
+    <h2 class="section-title"><i class="fas fa-temperature-high"></i> Environmental Sensors</h2>
     <div class="sensor-grid">
       <div class="card">
         <h3><i class="fas fa-thermometer-half"></i> Temperature</h3>
@@ -486,7 +585,7 @@
         <div class="sensor-value" id="humidity">--<span class="sensor-unit">%</span></div>
       </div>
       <div class="card">
-        <h3><i class="fas fa-sun"></i> Light</h3>
+        <h3><i class="fas fa-sun"></i> Light Level</h3>
         <div class="sensor-value" id="lightLevel">--<span class="sensor-unit">%</span></div>
       </div>
       <div class="card">
@@ -498,14 +597,17 @@
           </div>
         </div>
         <div class="status-row">
-          <span>Alert:</span>
-          <span><span id="waterAlertLed" class="led inactive"></span> <span id="waterAlert">Normal</span></span>
+          <span><i class="fas fa-exclamation-triangle"></i> Alert:</span>
+          <span>
+            <span id="waterAlertLed" class="led inactive"></span>
+            <span id="waterAlert">Normal</span>
+          </span>
         </div>
       </div>
     </div>
 
     <!-- Safety Sensors -->
-    <h2 class="section-title"><i class="fas fa-exclamation-triangle"></i> Safety</h2>
+    <h2 class="section-title"><i class="fas fa-exclamation-triangle"></i> Safety Sensors</h2>
     <div class="sensor-grid">
       <div class="card">
         <h3><i class="fas fa-person-walking"></i> Motion</h3>
@@ -513,8 +615,11 @@
           <span><span id="motionLed" class="led inactive"></span> <span id="motion">No Motion</span></span>
         </div>
         <div class="auto-switch">
-          <span><i class="fas fa-robot"></i> Motion Auto</span>
-          <label class="switch"><input type="checkbox" id="motionAutoSwitch"><span class="slider"></span></label>
+          <span><i class="fas fa-robot"></i> Motion Auto Mode</span>
+          <label class="auto-toggle">
+            <input type="checkbox" id="motionAutoSwitch">
+            <span class="auto-slider"></span>
+          </label>
         </div>
       </div>
       <div class="card">
@@ -546,11 +651,19 @@
         <div class="status-row">
           <span><span id="buzzerLed" class="led inactive"></span> <span id="buzzerStatus">OFF</span></span>
         </div>
-        <button id="buzzerBtn" class="toggle-btn off">Toggle Buzzer</button>
+        <div class="relay-switch">
+          <span class="switch-label">
+            <i class="fas fa-toggle-on"></i> Control Switch
+          </span>
+          <label class="relay-toggle">
+            <input type="checkbox" id="buzzerSwitch">
+            <span class="relay-slider"></span>
+          </label>
+        </div>
       </div>
     </div>
 
-    <!-- Actions -->
+    <!-- Action Buttons -->
     <div class="button-group">
       <button id="allOffBtn" class="action-btn primary"><i class="fas fa-power-off"></i> All OFF</button>
       <button id="logoutBtn" class="action-btn secondary"><i class="fas fa-sign-out-alt"></i> Logout</button>
@@ -581,7 +694,7 @@
     const database = firebase.database();
     const auth = firebase.auth();
 
-    // Enable persistent connections and increase speed
+    // Keep connection alive
     database.goOnline();
     
     // DOM Elements
@@ -651,134 +764,129 @@
       const avgLatency = Math.round(latencyHistory.reduce((a,b) => a+b, 0) / latencyHistory.length);
       latencyDisplay.textContent = `⏱️ ${avgLatency}ms`;
       
-      if (avgLatency < 100) latencyDisplay.style.color = '#4caf50';
-      else if (avgLatency < 300) latencyDisplay.style.color = '#ff9800';
-      else latencyDisplay.style.color = '#f44336';
+      // Color code based on latency
+      if (avgLatency < 100) latencyDisplay.style.backgroundColor = 'rgba(76, 175, 80, 0.3)';
+      else if (avgLatency < 300) latencyDisplay.style.backgroundColor = 'rgba(255, 152, 0, 0.3)';
+      else latencyDisplay.style.backgroundColor = 'rgba(244, 67, 54, 0.3)';
     }
 
-    // Start dashboard with high-speed updates
+    // Start dashboard
     function startDashboard() {
-      // Relay listeners (with immediate updates)
+      // Relay configurations
       const relays = [
-        { id: 1, name: 'Light' },
-        { id: 2, name: 'Fan' },
-        { id: 3, name: 'Motor' },
-        { id: 4, name: 'Relay4' }
+        { id: 1, name: 'Light', switchId: 'relay1Switch', statusId: 'relay1Status', ledId: 'relay1Led' },
+        { id: 2, name: 'Fan', switchId: 'relay2Switch', statusId: 'relay2Status', ledId: 'relay2Led' },
+        { id: 3, name: 'Motor', switchId: 'relay3Switch', statusId: 'relay3Status', ledId: 'relay3Led' },
+        { id: 4, name: 'Relay4', switchId: 'relay4Switch', statusId: 'relay4Status', ledId: 'relay4Led' }
       ];
 
+      // Set up relay listeners and switches
       relays.forEach(relay => {
-        const statusEl = document.getElementById(`relay${relay.id}Status`);
-        const ledEl = document.getElementById(`relay${relay.id}Led`);
-        const btnEl = document.getElementById(`relay${relay.id}Btn`);
+        const switchEl = document.getElementById(relay.switchId);
+        const statusEl = document.getElementById(relay.statusId);
+        const ledEl = document.getElementById(relay.ledId);
 
-        // High-priority listener
+        // Listen for changes from Firebase
         database.ref(`/relay${relay.id}`).on('value', snapshot => {
           lastUpdateTime = Date.now();
           updateLatency();
           
           const state = snapshot.val();
-          statusEl.textContent = state ? 'ON' : 'OFF';
           
-          if (state) {
-            ledEl.className = 'led active';
-            btnEl.className = 'toggle-btn on';
-            btnEl.innerHTML = `<i class="fas fa-power-off"></i> Turn ${relay.name} OFF`;
-          } else {
-            ledEl.className = 'led inactive';
-            btnEl.className = 'toggle-btn off';
-            btnEl.innerHTML = `<i class="fas fa-power-off"></i> Turn ${relay.name} ON`;
+          // Update UI without triggering change event
+          if (switchEl.checked !== state) {
+            switchEl.checked = state;
           }
+          
+          // Update status text and LED
+          statusEl.textContent = state ? 'ON' : 'OFF';
+          statusEl.className = state ? 'status-text on' : 'status-text off';
+          ledEl.className = state ? 'led active' : 'led inactive';
         });
 
-        // Immediate button response
-        btnEl.addEventListener('mousedown', (e) => {
-          e.preventDefault();
-          database.ref(`/relay${relay.id}`).transaction(state => !state);
-          // Visual feedback
-          btnEl.style.transform = 'scale(0.95)';
-          setTimeout(() => btnEl.style.transform = '', 100);
+        // Handle switch changes (immediate response)
+        switchEl.addEventListener('change', (e) => {
+          const newState = e.target.checked;
+          
+          // Immediate visual feedback
+          statusEl.textContent = newState ? 'ON' : 'OFF';
+          statusEl.className = newState ? 'status-text on' : 'status-text off';
+          ledEl.className = newState ? 'led active' : 'led inactive';
+          
+          // Update Firebase (this will sync back and confirm)
+          database.ref(`/relay${relay.id}`).set(newState);
+          
+          // Track latency
+          lastUpdateTime = Date.now();
         });
       });
 
-      // Sensor listeners (with debouncing for performance)
-      let sensorUpdatePending = false;
+      // Sensor listeners
       database.ref('/sensors').on('value', snapshot => {
-        if (sensorUpdatePending) return;
-        sensorUpdatePending = true;
+        lastUpdateTime = Date.now();
+        updateLatency();
         
-        requestAnimationFrame(() => {
-          lastUpdateTime = Date.now();
-          updateLatency();
-          
-          const data = snapshot.val() || {};
-          
-          // Temperature
-          document.getElementById('temperature').innerHTML = 
-            (data.temperature || 0).toFixed(1) + '<span class="sensor-unit">°C</span>';
-          
-          // Humidity
-          document.getElementById('humidity').innerHTML = 
-            (data.humidity || 0).toFixed(1) + '<span class="sensor-unit">%</span>';
-          
-          // Light
-          document.getElementById('lightLevel').innerHTML = 
-            (data.light || 0) + '<span class="sensor-unit">%</span>';
-          
-          // Water Level
-          const waterLevel = data.water || 0;
-          document.getElementById('waterLevelFill').style.width = waterLevel + '%';
-          document.getElementById('waterLevelText').textContent = waterLevel + '%';
-          
-          const waterAlertEl = document.getElementById('waterAlert');
-          const waterAlertLed = document.getElementById('waterAlertLed');
-          if (waterLevel < 20) {
-            waterAlertEl.textContent = 'LOW WATER!';
-            waterAlertLed.className = 'led active';
-          } else if (waterLevel > 90) {
-            waterAlertEl.textContent = 'HIGH WATER';
-            waterAlertLed.className = 'led active';
-          } else {
-            waterAlertEl.textContent = 'Normal';
-            waterAlertLed.className = 'led inactive';
-          }
-          
-          // Motion
-          const motionEl = document.getElementById('motion');
-          const motionLed = document.getElementById('motionLed');
-          if (data.motion) {
-            motionEl.textContent = 'Motion Detected!';
-            motionLed.className = 'led active';
-          } else {
-            motionEl.textContent = 'No Motion';
-            motionLed.className = 'led inactive';
-          }
-          
-          // Rain
-          const rainEl = document.getElementById('rain');
-          const rainLed = document.getElementById('rainLed');
-          rainEl.textContent = data.rain ? 'Rain Detected!' : 'No Rain';
-          rainLed.className = data.rain ? 'led active' : 'led inactive';
-          
-          // Smoke
-          const smokeEl = document.getElementById('smoke');
-          const smokeLed = document.getElementById('smokeLed');
-          smokeEl.textContent = data.smoke ? 'SMOKE!' : 'Normal';
-          smokeLed.className = data.smoke ? 'led active' : 'led inactive';
-          
-          // Fire
-          const fireEl = document.getElementById('fire');
-          const fireLed = document.getElementById('fireLed');
-          fireEl.textContent = data.fire ? 'FIRE!' : 'Normal';
-          fireLed.className = data.fire ? 'led active' : 'led inactive';
-          
-          // Vibration
-          const vibrationEl = document.getElementById('vibration');
-          const vibrationLed = document.getElementById('vibrationLed');
-          vibrationEl.textContent = data.vibration ? 'Vibration!' : 'Normal';
-          vibrationLed.className = data.vibration ? 'led active' : 'led inactive';
-          
-          sensorUpdatePending = false;
-        });
+        const data = snapshot.val() || {};
+        
+        // Temperature
+        document.getElementById('temperature').innerHTML = 
+          (data.temperature || 0).toFixed(1) + '<span class="sensor-unit">°C</span>';
+        
+        // Humidity
+        document.getElementById('humidity').innerHTML = 
+          (data.humidity || 0).toFixed(1) + '<span class="sensor-unit">%</span>';
+        
+        // Light
+        document.getElementById('lightLevel').innerHTML = 
+          (data.light || 0) + '<span class="sensor-unit">%</span>';
+        
+        // Water Level
+        const waterLevel = data.water || 0;
+        document.getElementById('waterLevelFill').style.width = waterLevel + '%';
+        document.getElementById('waterLevelText').textContent = waterLevel + '%';
+        
+        const waterAlertEl = document.getElementById('waterAlert');
+        const waterAlertLed = document.getElementById('waterAlertLed');
+        if (waterLevel < 20) {
+          waterAlertEl.textContent = 'LOW WATER!';
+          waterAlertLed.className = 'led active';
+        } else if (waterLevel > 90) {
+          waterAlertEl.textContent = 'HIGH WATER';
+          waterAlertLed.className = 'led active';
+        } else {
+          waterAlertEl.textContent = 'Normal';
+          waterAlertLed.className = 'led inactive';
+        }
+        
+        // Motion
+        const motionEl = document.getElementById('motion');
+        const motionLed = document.getElementById('motionLed');
+        motionEl.textContent = data.motion ? 'Motion Detected!' : 'No Motion';
+        motionLed.className = data.motion ? 'led active' : 'led inactive';
+        
+        // Rain
+        const rainEl = document.getElementById('rain');
+        const rainLed = document.getElementById('rainLed');
+        rainEl.textContent = data.rain ? 'Rain Detected!' : 'No Rain';
+        rainLed.className = data.rain ? 'led active' : 'led inactive';
+        
+        // Smoke
+        const smokeEl = document.getElementById('smoke');
+        const smokeLed = document.getElementById('smokeLed');
+        smokeEl.textContent = data.smoke ? 'SMOKE!' : 'Normal';
+        smokeLed.className = data.smoke ? 'led active' : 'led inactive';
+        
+        // Fire
+        const fireEl = document.getElementById('fire');
+        const fireLed = document.getElementById('fireLed');
+        fireEl.textContent = data.fire ? 'FIRE!' : 'Normal';
+        fireLed.className = data.fire ? 'led active' : 'led inactive';
+        
+        // Vibration
+        const vibrationEl = document.getElementById('vibration');
+        const vibrationLed = document.getElementById('vibrationLed');
+        vibrationEl.textContent = data.vibration ? 'Vibration!' : 'Normal';
+        vibrationLed.className = data.vibration ? 'led active' : 'led inactive';
       });
 
       // Auto modes
@@ -803,43 +911,42 @@
       });
 
       // Buzzer
-      const buzzerBtn = document.getElementById('buzzerBtn');
+      const buzzerSwitch = document.getElementById('buzzerSwitch');
+      const buzzerLed = document.getElementById('buzzerLed');
+      const buzzerStatus = document.getElementById('buzzerStatus');
+
       database.ref('/buzzer').on('value', snapshot => {
-        const state = snapshot.val() || false;
-        const buzzerLed = document.getElementById('buzzerLed');
-        const buzzerStatus = document.getElementById('buzzerStatus');
+        lastUpdateTime = Date.now();
+        updateLatency();
         
-        if (state) {
-          buzzerLed.className = 'led active';
-          buzzerStatus.textContent = 'ON';
-          buzzerBtn.className = 'toggle-btn on';
-          buzzerBtn.innerHTML = '<i class="fas fa-volume-up"></i> Turn Buzzer OFF';
-        } else {
-          buzzerLed.className = 'led inactive';
-          buzzerStatus.textContent = 'OFF';
-          buzzerBtn.className = 'toggle-btn off';
-          buzzerBtn.innerHTML = '<i class="fas fa-volume-up"></i> Turn Buzzer ON';
+        const state = snapshot.val() || false;
+        
+        if (buzzerSwitch.checked !== state) {
+          buzzerSwitch.checked = state;
         }
+        
+        buzzerLed.className = state ? 'led active' : 'led inactive';
+        buzzerStatus.textContent = state ? 'ON' : 'OFF';
+        buzzerStatus.className = state ? 'status-text on' : 'status-text off';
       });
 
-      buzzerBtn.addEventListener('mousedown', e => {
-        e.preventDefault();
-        database.ref('/buzzer').transaction(state => !state);
-        buzzerBtn.style.transform = 'scale(0.95)';
-        setTimeout(() => buzzerBtn.style.transform = '', 100);
+      buzzerSwitch.addEventListener('change', e => {
+        const newState = e.target.checked;
+        buzzerLed.className = newState ? 'led active' : 'led inactive';
+        buzzerStatus.textContent = newState ? 'ON' : 'OFF';
+        buzzerStatus.className = newState ? 'status-text on' : 'status-text off';
+        database.ref('/buzzer').set(newState);
+        lastUpdateTime = Date.now();
       });
 
       // All OFF button
-      allOffBtn.addEventListener('mousedown', e => {
-        e.preventDefault();
+      allOffBtn.addEventListener('click', () => {
         if (confirm('Turn all relays OFF?')) {
           database.ref('/relay1').set(false);
           database.ref('/relay2').set(false);
           database.ref('/relay3').set(false);
           database.ref('/relay4').set(false);
         }
-        allOffBtn.style.transform = 'scale(0.95)';
-        setTimeout(() => allOffBtn.style.transform = '', 100);
       });
     }
 
@@ -855,7 +962,7 @@
 
     // Force reconnection if needed
     setInterval(() => {
-      if (Date.now() - lastUpdateTime > 100) {
+      if (Date.now() - lastUpdateTime > 5000) {
         console.log('Forcing reconnection...');
         database.goOnline();
       }
@@ -863,4 +970,3 @@
   </script>
 </body>
 </html>
-
