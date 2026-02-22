@@ -153,6 +153,25 @@
             font-weight: bold;
             background: #ff9800;
             color: white;
+            margin-left: 10px;
+        }
+        
+        .auto-badge {
+            background: #4caf50;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        
+        .manual-badge {
+            background: #ff9800;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 10px;
         }
     </style>
 </head>
@@ -182,11 +201,23 @@
                     </label>
                 </div>
                 
-                <!-- Motor Manual Control -->
+                <!-- Motor Manual Control Switch -->
+                <div class="switch-container" style="margin-top: 20px;">
+                    <span class="switch-label">
+                        🔧 Motor Manual Control
+                        <span id="motorManualBadge" class="manual-badge">MANUAL</span>
+                    </span>
+                    <label class="switch">
+                        <input type="checkbox" id="motorManualToggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <!-- Motor Status Display -->
                 <div class="relay-row">
                     <span>
                         <span id="motorLed" class="status-indicator status-off"></span>
-                        Motor Status
+                        Current Motor Status
                     </span>
                     <span id="motorStatus">OFF</span>
                 </div>
@@ -194,48 +225,68 @@
                 <!-- Water Level Display -->
                 <div class="sensor-value" id="waterLevel">--%</div>
                 
+                <!-- Current Mode Display -->
+                <div id="motorModeDisplay" style="margin: 15px 0; padding: 10px; background: #e8f5e8; border-radius: 8px; text-align: center; font-weight: bold;">
+                    Current Mode: <span id="motorModeText">Auto (Enabled)</span>
+                </div>
+                
                 <!-- Info Text -->
                 <p style="color: #666; font-size: 14px; margin-top: 15px; padding: 10px; background: #e3f2fd; border-radius: 8px;">
-                    ℹ️ <strong>Auto Mode:</strong> Motor turns ON when water < 20% and OFF when water > 90%<br>
-                    🔧 <strong>Manual Mode:</strong> Use switch above or physical button to control
+                    ℹ️ <strong>Auto Mode ON:</strong> Motor controlled by water level (ON <20%, OFF >90%)<br>
+                    🔧 <strong>Auto Mode OFF:</strong> Use manual switch above to control motor<br>
+                    💡 Manual control always works regardless of auto mode
                 </p>
             </div>
             
-            <!-- Other Relays -->
+            <!-- Light Relay -->
             <div class="card">
                 <h3>💡 Light (Relay 1)</h3>
                 <div class="relay-row">
                     <span><span id="lightLed" class="status-indicator status-off"></span> Status</span>
                     <span id="lightStatus">OFF</span>
                 </div>
-                <label class="switch">
-                    <input type="checkbox" id="lightToggle">
-                    <span class="slider"></span>
-                </label>
+                <div class="switch-container">
+                    <span class="switch-label">Manual Control</span>
+                    <label class="switch">
+                        <input type="checkbox" id="lightToggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <p style="color: #666; font-size: 12px; margin-top: 10px;">Motion auto: 15s timer</p>
             </div>
             
+            <!-- Fan Relay -->
             <div class="card">
                 <h3>🌀 Fan (Relay 2)</h3>
                 <div class="relay-row">
                     <span><span id="fanLed" class="status-indicator status-off"></span> Status</span>
                     <span id="fanStatus">OFF</span>
                 </div>
-                <label class="switch">
-                    <input type="checkbox" id="fanToggle">
-                    <span class="slider"></span>
-                </label>
+                <div class="switch-container">
+                    <span class="switch-label">Manual Control</span>
+                    <label class="switch">
+                        <input type="checkbox" id="fanToggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <p style="color: #666; font-size: 12px; margin-top: 10px;">Smoke auto: turns ON when smoke detected</p>
             </div>
             
+            <!-- Emergency Relay -->
             <div class="card">
                 <h3>⚡ Emergency (Relay 4)</h3>
                 <div class="relay-row">
                     <span><span id="emergencyLed" class="status-indicator status-off"></span> Status</span>
                     <span id="emergencyStatus">OFF</span>
                 </div>
-                <label class="switch">
-                    <input type="checkbox" id="emergencyToggle">
-                    <span class="slider"></span>
-                </label>
+                <div class="switch-container">
+                    <span class="switch-label">Manual Control</span>
+                    <label class="switch">
+                        <input type="checkbox" id="emergencyToggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <p style="color: #666; font-size: 12px; margin-top: 10px;">Auto ON during fire</p>
             </div>
         </div>
         
@@ -251,20 +302,21 @@
             </div>
             <div class="card">
                 <h3>📊 Other Sensors</h3>
-                <div class="relay-row"><span>Motion:</span> <span id="motion">No</span></div>
-                <div class="relay-row"><span>Smoke:</span> <span id="smoke">No</span></div>
-                <div class="relay-row"><span>Fire:</span> <span id="fire">No</span></div>
-                <div class="relay-row"><span>Vibration:</span> <span id="vibration">0</span></div>
+                <div class="relay-row"><span>🚶 Motion:</span> <span id="motion">No</span></div>
+                <div class="relay-row"><span>🔥 Smoke:</span> <span id="smoke">No</span></div>
+                <div class="relay-row"><span>🔥 Fire:</span> <span id="fire">No</span></div>
+                <div class="relay-row"><span>📳 Vibration:</span> <span id="vibration">0</span></div>
+                <div class="relay-row"><span>☔ Rain:</span> <span id="rain">No</span></div>
             </div>
         </div>
     </div>
 
     <script>
-        // 🔧 YOUR FIREBASE CONFIGURATION - Replace with your details
+        // 🔧 YOUR FIREBASE CONFIGURATION
         const firebaseConfig = {
-            apiKey: "AIzaSyCLdL4teSGiF8f0M5q9LaXoXd1mPoq9lMY",          // Your API Key
+            apiKey: "AIzaSyCLdL4teSGiF8f0M5q9LaXoXd1mPoq9lMY",
             authDomain: "smart-home-dd7e5.firebaseapp.com",
-            databaseURL: "https://smart-home-dd7e5-default-rtdb.europe-west1.firebasedatabase.app", // Your DB URL
+            databaseURL: "https://smart-home-dd7e5-default-rtdb.europe-west1.firebasedatabase.app",
             projectId: "smart-home-dd7e5",
             storageBucket: "smart-home-dd7e5.firebasestorage.app",
             messagingSenderId: "230561792370",
@@ -287,38 +339,102 @@
             }
         });
 
-        // ===== MOTOR AUTO MODE TOGGLE (THIS IS WHAT YOU ASKED FOR) =====
+        // ===== MOTOR CONTROL SECTION =====
         const motorAutoToggle = document.getElementById('motorAutoToggle');
+        const motorManualToggle = document.getElementById('motorManualToggle');
         const motorAutoBadge = document.getElementById('motorAutoModeBadge');
+        const motorManualBadge = document.getElementById('motorManualBadge');
+        const motorModeText = document.getElementById('motorModeText');
 
-        // Listen for changes in motor auto mode from Firebase
+        // Track manual toggle to prevent feedback loops
+        let isManualChange = false;
+        let isAutoChange = false;
+
+        // Listen for motor auto mode changes from Firebase
         db.ref('/auto/motor').on('value', (snapshot) => {
+            if (isManualChange) {
+                isManualChange = false;
+                return;
+            }
+            
             const isAuto = snapshot.val();
             motorAutoToggle.checked = isAuto;
             motorAutoBadge.textContent = isAuto ? 'ENABLED' : 'DISABLED';
             motorAutoBadge.style.background = isAuto ? '#4caf50' : '#f44336';
+            
+            // Update mode display
+            motorModeText.textContent = isAuto ? 'Auto (Enabled)' : 'Manual Only';
+            motorModeText.style.color = isAuto ? '#4caf50' : '#ff9800';
         });
 
-        // When user toggles the switch, update Firebase
+        // When user toggles auto mode switch
         motorAutoToggle.addEventListener('change', (e) => {
-            db.ref('/auto/motor').set(e.target.checked);
+            isAutoChange = true;
+            db.ref('/auto/motor').set(e.target.checked).then(() => {
+                isAutoChange = false;
+            });
         });
 
-        // ===== MOTOR STATUS =====
+        // Listen for motor state changes from Firebase
         db.ref('/relay3').on('value', (snapshot) => {
+            if (isAutoChange) {
+                isAutoChange = false;
+                return;
+            }
+            
             const state = snapshot.val();
+            
+            // Update motor status display
             document.getElementById('motorStatus').textContent = state ? 'ON' : 'OFF';
             document.getElementById('motorLed').className = state ? 'status-indicator status-on' : 'status-indicator status-off';
+            
+            // Update manual toggle without triggering events
+            if (motorManualToggle.checked !== state) {
+                motorManualToggle.checked = state;
+            }
+        });
+
+        // When user toggles manual motor switch
+        motorManualToggle.addEventListener('change', (e) => {
+            const newState = e.target.checked;
+            
+            // Immediate visual feedback
+            document.getElementById('motorStatus').textContent = newState ? 'ON' : 'OFF';
+            document.getElementById('motorLed').className = newState ? 'status-indicator status-on' : 'status-indicator status-off';
+            
+            // Update Firebase (manual control always works regardless of auto mode)
+            isManualChange = true;
+            db.ref('/relay3').set(newState).then(() => {
+                setTimeout(() => {
+                    isManualChange = false;
+                }, 100);
+            });
+            
+            // Show manual action feedback
+            motorManualBadge.style.background = '#4caf50';
+            motorManualBadge.textContent = 'MANUAL ✓';
+            setTimeout(() => {
+                motorManualBadge.style.background = '#ff9800';
+                motorManualBadge.textContent = 'MANUAL';
+            }, 1000);
         });
 
         // ===== WATER LEVEL =====
         db.ref('/sensors/water').on('value', (snapshot) => {
             const water = snapshot.val() || 0;
             document.getElementById('waterLevel').innerHTML = water + '%';
+            
+            // Color code water level
+            if (water < 20) {
+                document.getElementById('waterLevel').style.background = 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)';
+            } else if (water > 90) {
+                document.getElementById('waterLevel').style.background = 'linear-gradient(135deg, #4caf50 0%, #45a049 100%)';
+            } else {
+                document.getElementById('waterLevel').style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            }
         });
 
-        // ===== OTHER RELAYS =====
-        // Light (Relay1)
+        // ===== LIGHT (Relay1) =====
         db.ref('/relay1').on('value', (snapshot) => {
             const state = snapshot.val();
             document.getElementById('lightStatus').textContent = state ? 'ON' : 'OFF';
@@ -329,7 +445,7 @@
             db.ref('/relay1').set(e.target.checked);
         });
 
-        // Fan (Relay2)
+        // ===== FAN (Relay2) =====
         db.ref('/relay2').on('value', (snapshot) => {
             const state = snapshot.val();
             document.getElementById('fanStatus').textContent = state ? 'ON' : 'OFF';
@@ -340,7 +456,7 @@
             db.ref('/relay2').set(e.target.checked);
         });
 
-        // Emergency (Relay4)
+        // ===== EMERGENCY (Relay4) =====
         db.ref('/relay4').on('value', (snapshot) => {
             const state = snapshot.val();
             document.getElementById('emergencyStatus').textContent = state ? 'ON' : 'OFF';
@@ -362,9 +478,16 @@
             document.getElementById('smoke').textContent = data.smoke ? 'Yes' : 'No';
             document.getElementById('fire').textContent = data.fire ? 'Yes' : 'No';
             document.getElementById('vibration').textContent = data.vibrationCount || 0;
+            document.getElementById('rain').textContent = data.rain ? 'Yes' : 'No';
+            
+            // Update motion LED
+            const motionLed = document.getElementById('motionLed');
+            if (motionLed) {
+                motionLed.className = data.motion ? 'status-indicator status-on' : 'status-indicator status-off';
+            }
         });
 
-        console.log('Dashboard loaded! Motor Auto Mode toggle is ready.');
+        console.log('✅ Dashboard loaded! Motor Auto Mode and Manual control working correctly.');
     </script>
 </body>
 </html>
