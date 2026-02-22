@@ -4,22 +4,49 @@
   <meta charset="UTF-8">
   <title>ESP32 Smart Home Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Add Firebase SDKs correctly -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f0f2f5;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
       padding: 20px;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
     }
     .header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      padding: 20px;
-      border-radius: 15px;
+      background: rgba(255,255,255,0.95);
+      padding: 30px;
+      border-radius: 20px;
       margin-bottom: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
       text-align: center;
     }
-    .container { max-width: 1400px; margin: 0 auto; }
+    .header h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 2.5em;
+    }
+    .connection-status {
+      display: inline-block;
+      padding: 8px 20px;
+      border-radius: 30px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    .status-connected {
+      background: #4caf50;
+      color: white;
+    }
+    .status-disconnected {
+      background: #f44336;
+      color: white;
+    }
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -27,44 +54,73 @@
       margin-bottom: 30px;
     }
     .card {
-      background: white;
-      border-radius: 15px;
-      padding: 20px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      background: rgba(255,255,255,0.95);
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      backdrop-filter: blur(10px);
+      transition: transform 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
     }
     .card h3 {
       color: #333;
-      margin-bottom: 15px;
+      margin-bottom: 20px;
+      font-size: 1.3em;
       display: flex;
       align-items: center;
       gap: 10px;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 10px;
     }
     .status-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin: 10px 0;
-      padding: 8px;
+      margin: 15px 0;
+      padding: 10px;
       background: #f8f9fa;
-      border-radius: 8px;
+      border-radius: 12px;
+      border-left: 4px solid #667eea;
     }
     .led {
-      width: 12px;
-      height: 12px;
+      width: 14px;
+      height: 14px;
       border-radius: 50%;
       display: inline-block;
-      margin-right: 5px;
+      margin-right: 8px;
+      transition: all 0.3s;
     }
-    .led.active { background: #4caf50; box-shadow: 0 0 10px #4caf50; }
+    .led.active { 
+      background: #4caf50; 
+      box-shadow: 0 0 15px #4caf50;
+      animation: pulse 1.5s infinite;
+    }
     .led.inactive { background: #ccc; }
-    .led.warning { background: #ff9800; box-shadow: 0 0 10px #ff9800; }
-    .led.danger { background: #f44336; box-shadow: 0 0 10px #f44336; }
+    .led.warning { 
+      background: #ff9800; 
+      box-shadow: 0 0 15px #ff9800;
+      animation: pulse 1s infinite;
+    }
+    .led.danger { 
+      background: #f44336; 
+      box-shadow: 0 0 15px #f44336;
+      animation: pulse 0.5s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
     
     .toggle-switch {
       position: relative;
       display: inline-block;
-      width: 60px;
-      height: 30px;
+      width: 70px;
+      height: 34px;
+      margin: 10px 0;
     }
     .toggle-switch input {
       opacity: 0;
@@ -80,115 +136,153 @@
       bottom: 0;
       background-color: #f44336;
       transition: .3s;
-      border-radius: 30px;
+      border-radius: 34px;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
     }
     .slider:before {
       position: absolute;
       content: "";
-      height: 24px;
-      width: 24px;
-      left: 3px;
-      bottom: 3px;
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
       background-color: white;
       transition: .3s;
       border-radius: 50%;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
-    input:checked + .slider { background-color: #4caf50; }
-    input:checked + .slider:before { transform: translateX(30px); }
+    input:checked + .slider {
+      background-color: #4caf50;
+    }
+    input:checked + .slider:before {
+      transform: translateX(36px);
+    }
     
-    .vibration-count {
-      font-size: 24px;
+    .sensor-value {
+      font-size: 2.5em;
       font-weight: bold;
+      color: #333;
       text-align: center;
       padding: 15px;
-      background: #e3f2fd;
-      border-radius: 10px;
-      margin: 10px 0;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+      border-radius: 15px;
+      margin: 15px 0;
     }
-    .buzzer-reason {
-      padding: 10px;
-      border-radius: 8px;
+    
+    .vibration-count {
+      font-size: 3em;
       font-weight: bold;
       text-align: center;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border-radius: 15px;
+      margin: 15px 0;
+      box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+    }
+    
+    .buzzer-reason {
+      padding: 15px;
+      border-radius: 12px;
+      font-weight: bold;
+      text-align: center;
+      font-size: 1.2em;
+      margin: 10px 0;
     }
     .buzzer-active {
-      background: #ffcdd2;
-      color: #c62828;
-      animation: pulse 1s infinite;
+      background: #ffeb3b;
+      color: #333;
+      animation: pulse 0.5s infinite;
     }
-    @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.7; }
-      100% { opacity: 1; }
-    }
+    
     .timer-info {
-      font-size: 12px;
+      font-size: 0.9em;
       color: #666;
-      margin-top: 5px;
+      margin-top: 10px;
+      padding: 8px;
+      background: #e3f2fd;
+      border-radius: 8px;
+      text-align: center;
     }
+    
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8em;
+      font-weight: bold;
+      margin-left: 10px;
+    }
+    .badge-success { background: #4caf50; color: white; }
+    .badge-warning { background: #ff9800; color: white; }
+    .badge-danger { background: #f44336; color: white; }
   </style>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
 </head>
 <body>
-  <div class="header">
-    <h1>🏠 ESP32 Smart Home Dashboard</h1>
-    <p>Real-time Monitoring & Control</p>
-  </div>
-  
   <div class="container">
+    <div class="header">
+      <h1>🏠 ESP32 Smart Home Dashboard</h1>
+      <p>Real-time Monitoring & Control System</p>
+      <div id="connectionStatus" class="connection-status status-disconnected">
+        🔴 Connecting to Firebase...
+      </div>
+    </div>
+    
     <!-- Relay Controls -->
     <div class="grid">
       <div class="card">
         <h3>💡 Light (Relay 1)</h3>
         <div class="status-row">
-          <span>Status:</span>
-          <span><span id="relay1Led" class="led inactive"></span> <span id="relay1Status">OFF</span></span>
+          <span><i class="led" id="relay1Led"></i> Status:</span>
+          <span id="relay1Status" style="font-weight: bold;">OFF</span>
         </div>
         <label class="toggle-switch">
           <input type="checkbox" id="relay1Switch">
           <span class="slider"></span>
         </label>
         <div class="status-row">
-          <span>LDR Auto:</span>
-          <span><span id="ldrAutoLed" class="led inactive"></span> <span id="ldrAutoStatus">OFF</span></span>
+          <span><i class="led" id="ldrAutoLed"></i> LDR Auto:</span>
+          <span id="ldrAutoStatus">OFF</span>
         </div>
+        <div id="motionTimer" class="timer-info"></div>
       </div>
 
       <div class="card">
         <h3>🌀 Fan (Relay 2)</h3>
         <div class="status-row">
-          <span>Status:</span>
-          <span><span id="relay2Led" class="led inactive"></span> <span id="relay2Status">OFF</span></span>
+          <span><i class="led" id="relay2Led"></i> Status:</span>
+          <span id="relay2Status" style="font-weight: bold;">OFF</span>
         </div>
         <label class="toggle-switch">
           <input type="checkbox" id="relay2Switch">
           <span class="slider"></span>
         </label>
-        <div id="smokeFanIndicator" style="display:none;" class="timer-info">🔥 Smoke mode active</div>
+        <div id="smokeFanIndicator" class="timer-info" style="display:none; background:#ff9800; color:white;">
+          🔥 Smoke mode active - Fan running
+        </div>
       </div>
 
       <div class="card">
         <h3>💧 Motor (Relay 3)</h3>
         <div class="status-row">
-          <span>Status:</span>
-          <span><span id="relay3Led" class="led inactive"></span> <span id="relay3Status">OFF</span></span>
+          <span><i class="led" id="relay3Led"></i> Status:</span>
+          <span id="relay3Status" style="font-weight: bold;">OFF</span>
         </div>
         <label class="toggle-switch">
           <input type="checkbox" id="relay3Switch">
           <span class="slider"></span>
         </label>
         <div class="status-row">
-          <span>Water Level:</span>
-          <span><span id="waterLed" class="led inactive"></span> <span id="waterStatus">0%</span></span>
+          <span><i class="led" id="waterLed"></i> Water Level:</span>
+          <span id="waterStatus">0%</span>
         </div>
       </div>
 
       <div class="card">
         <h3>⚡ Relay 4</h3>
         <div class="status-row">
-          <span>Status:</span>
-          <span><span id="relay4Led" class="led inactive"></span> <span id="relay4Status">OFF</span></span>
+          <span><i class="led" id="relay4Led"></i> Status:</span>
+          <span id="relay4Status" style="font-weight: bold;">OFF</span>
         </div>
         <label class="toggle-switch">
           <input type="checkbox" id="relay4Switch">
@@ -201,41 +295,46 @@
     <div class="grid">
       <div class="card">
         <h3>🌡️ Temperature</h3>
-        <div style="font-size: 32px; text-align: center;" id="temperature">--°C</div>
+        <div class="sensor-value" id="temperature">--°C</div>
       </div>
       <div class="card">
         <h3>💧 Humidity</h3>
-        <div style="font-size: 32px; text-align: center;" id="humidity">--%</div>
+        <div class="sensor-value" id="humidity">--%</div>
       </div>
       <div class="card">
         <h3>☀️ Light Level</h3>
-        <div style="font-size: 32px; text-align: center;" id="lightLevel">--%</div>
+        <div class="sensor-value" id="lightLevel">--%</div>
       </div>
       <div class="card">
         <h3>💦 Water Level</h3>
-        <div style="font-size: 32px; text-align: center;" id="waterLevel">--%</div>
+        <div class="sensor-value" id="waterLevel">--%</div>
       </div>
     </div>
 
     <!-- Safety Sensors -->
     <div class="grid">
       <div class="card">
-        <h3>🚶 Motion</h3>
+        <h3>🚶 Motion Detection</h3>
         <div class="status-row">
-          <span><span id="motionLed" class="led inactive"></span> <span id="motionStatus">No Motion</span></span>
+          <span><i class="led" id="motionLed"></i> Status:</span>
+          <span id="motionStatus">No Motion</span>
         </div>
         <div class="status-row">
-          <span>Auto Mode:</span>
-          <span><span id="motionAutoLed" class="led inactive"></span> <span id="motionAutoStatus">OFF</span></span>
+          <span><i class="led" id="motionAutoLed"></i> Auto Mode:</span>
+          <span id="motionAutoStatus">OFF</span>
         </div>
-        <div id="motionTimer" class="timer-info"></div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="motionAutoSwitch">
+          <span class="slider"></span>
+        </label>
       </div>
 
       <div class="card">
-        <h3>📳 Vibration</h3>
+        <h3>📳 Vibration Sensor</h3>
         <div class="vibration-count" id="vibrationCount">0</div>
         <div class="status-row">
-          <span><span id="vibrationLed" class="led inactive"></span> <span id="vibrationStatus">Normal</span></span>
+          <span><i class="led" id="vibrationLed"></i> Status:</span>
+          <span id="vibrationStatus">Normal</span>
         </div>
       </div>
 
@@ -243,30 +342,31 @@
         <h3>🔔 Buzzer Status</h3>
         <div id="buzzerReason" class="buzzer-reason">No Alert</div>
         <div class="status-row">
-          <span><span id="buzzerLed" class="led inactive"></span> <span id="buzzerStatus">Inactive</span></span>
+          <span><i class="led" id="buzzerLed"></i> Status:</span>
+          <span id="buzzerStatus">Inactive</span>
         </div>
       </div>
 
       <div class="card">
-        <h3>⚠️ Alerts</h3>
+        <h3>⚠️ Alert Sensors</h3>
         <div class="status-row">
-          <span>🔥 Smoke:</span>
-          <span><span id="smokeLed" class="led inactive"></span> <span id="smokeStatus">Normal</span></span>
+          <span><i class="led" id="smokeLed"></i> Smoke:</span>
+          <span id="smokeStatus">Normal</span>
         </div>
         <div class="status-row">
-          <span>🔥 Fire:</span>
-          <span><span id="fireLed" class="led inactive"></span> <span id="fireStatus">Normal</span></span>
+          <span><i class="led" id="fireLed"></i> Fire:</span>
+          <span id="fireStatus">Normal</span>
         </div>
         <div class="status-row">
-          <span>☔ Rain:</span>
-          <span><span id="rainLed" class="led inactive"></span> <span id="rainStatus">No Rain</span></span>
+          <span><i class="led" id="rainLed"></i> Rain:</span>
+          <span id="rainStatus">No Rain</span>
         </div>
       </div>
     </div>
   </div>
 
   <script>
-    // Firebase Configuration
+    // Your Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyCLdL4teSGiF8f0M5q9LaXoXd1mPoq9lMY",
       authDomain: "smart-home-dd7e5.firebaseapp.com",
@@ -277,26 +377,67 @@
       appId: "1:230561792370:web:f951f576564cb076401deb"
     };
 
-    firebase.initializeApp(firebaseConfig);
+    // Initialize Firebase
+    console.log("Initializing Firebase...");
+    const app = firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    console.log("Firebase initialized successfully!");
+
+    // Connection status
+    const connectionStatus = document.getElementById('connectionStatus');
+    
+    // Monitor connection state
+    db.ref('.info/connected').on('value', (snap) => {
+      if (snap.val() === true) {
+        connectionStatus.className = 'connection-status status-connected';
+        connectionStatus.innerHTML = '🟢 Connected to Firebase';
+        console.log('✅ Connected to Firebase');
+      } else {
+        connectionStatus.className = 'connection-status status-disconnected';
+        connectionStatus.innerHTML = '🔴 Disconnected from Firebase';
+        console.log('❌ Disconnected from Firebase');
+      }
+    });
 
     // Monitor Relay States
+    console.log("Setting up relay listeners...");
     for (let i = 1; i <= 4; i++) {
       db.ref(`/relay${i}`).on('value', (snapshot) => {
         const state = snapshot.val();
-        document.getElementById(`relay${i}Led`).className = state ? 'led active' : 'led inactive';
-        document.getElementById(`relay${i}Status`).textContent = state ? 'ON' : 'OFF';
-        document.getElementById(`relay${i}Switch`).checked = state;
+        console.log(`Relay ${i} state:`, state);
+        
+        const led = document.getElementById(`relay${i}Led`);
+        const status = document.getElementById(`relay${i}Status`);
+        const toggle = document.getElementById(`relay${i}Switch`);
+        
+        if (state) {
+          led.className = 'led active';
+          status.textContent = 'ON';
+          if (toggle) toggle.checked = true;
+        } else {
+          led.className = 'led inactive';
+          status.textContent = 'OFF';
+          if (toggle) toggle.checked = false;
+        }
       });
 
-      document.getElementById(`relay${i}Switch`).addEventListener('change', (e) => {
-        db.ref(`/relay${i}`).set(e.target.checked);
-      });
+      // Add toggle event listeners
+      const toggle = document.getElementById(`relay${i}Switch`);
+      if (toggle) {
+        toggle.addEventListener('change', (e) => {
+          console.log(`Toggle Relay ${i}:`, e.target.checked);
+          db.ref(`/relay${i}`).set(e.target.checked)
+            .then(() => console.log(`Relay ${i} updated successfully`))
+            .catch(error => console.error(`Error updating relay ${i}:`, error));
+        });
+      }
     }
 
     // Monitor Sensors
+    console.log("Setting up sensor listeners...");
     db.ref('/sensors').on('value', (snapshot) => {
       const data = snapshot.val();
+      console.log("Sensors data:", data);
       if (!data) return;
 
       // Temperature & Humidity
@@ -325,17 +466,25 @@
       document.getElementById('rainLed').className = rain ? 'led active' : 'led inactive';
       document.getElementById('rainStatus').textContent = rain ? 'Rain Detected' : 'No Rain';
 
-      // Water Alert
+      // Water Level Alert
       const water = data.water || 0;
-      document.getElementById('waterLed').className = water < 20 ? 'led danger' : (water > 80 ? 'led warning' : 'led inactive');
-      document.getElementById('waterStatus').textContent = water + '%';
+      const waterLed = document.getElementById('waterLed');
+      const waterStatus = document.getElementById('waterStatus');
+      waterStatus.textContent = water + '%';
+      
+      if (water < 20) {
+        waterLed.className = 'led danger';
+      } else if (water > 80) {
+        waterLed.className = 'led warning';
+      } else {
+        waterLed.className = 'led inactive';
+      }
 
       // Vibration
       const vib = data.vibration || false;
       document.getElementById('vibrationLed').className = vib ? 'led warning' : 'led inactive';
       document.getElementById('vibrationStatus').textContent = vib ? 'Vibration!' : 'Normal';
       
-      // Vibration Count
       const vibCount = data.vibrationCount || 0;
       document.getElementById('vibrationCount').textContent = vibCount;
 
@@ -346,18 +495,21 @@
       document.getElementById('buzzerStatus').textContent = buzzerActive ? 'Active' : 'Inactive';
       
       const buzzerEl = document.getElementById('buzzerReason');
-      buzzerEl.textContent = buzzerActive ? buzzerReason : 'No Alert';
+      buzzerEl.textContent = buzzerActive ? `🚨 ${buzzerReason}` : 'No Alert';
       buzzerEl.className = buzzerActive ? 'buzzer-reason buzzer-active' : 'buzzer-reason';
     });
 
     // Monitor Auto Modes
+    console.log("Setting up auto mode listeners...");
     db.ref('/auto').on('value', (snapshot) => {
       const data = snapshot.val() || {};
+      console.log("Auto modes:", data);
       
       // Motion Auto
       const motionAuto = data.motion || false;
       document.getElementById('motionAutoLed').className = motionAuto ? 'led active' : 'led inactive';
       document.getElementById('motionAutoStatus').textContent = motionAuto ? 'ON' : 'OFF';
+      document.getElementById('motionAutoSwitch').checked = motionAuto;
 
       // LDR Auto
       const ldrAuto = data.ldr || false;
@@ -369,6 +521,12 @@
       document.getElementById('smokeFanIndicator').style.display = smokeFan ? 'block' : 'none';
     });
 
+    // Motion Auto Switch
+    document.getElementById('motionAutoSwitch').addEventListener('change', (e) => {
+      console.log("Motion Auto toggled:", e.target.checked);
+      db.ref('/auto/motion').set(e.target.checked);
+    });
+
     // Monitor Timers
     db.ref('/timers').on('value', (snapshot) => {
       const data = snapshot.val() || {};
@@ -377,11 +535,13 @@
       // Motion Timer
       if (data.motionOffTime && data.motionOffTime > now) {
         const secondsLeft = Math.round((data.motionOffTime - now) / 1000);
-        document.getElementById('motionTimer').textContent = `Light will turn off in ${secondsLeft}s`;
+        document.getElementById('motionTimer').textContent = `⏰ Light turns off in ${secondsLeft}s`;
       } else {
         document.getElementById('motionTimer').textContent = '';
       }
     });
+
+    console.log("Dashboard initialization complete!");
   </script>
 </body>
 </html>
