@@ -1,75 +1,95 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SentinelHome - Instant Control</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌧️ Smart Water System - With Rain Sensor</title>
     
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         body {
-            background: linear-gradient(135deg, #0f0c1f 0%, #1a1a2e 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
-            color: white;
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
         
         .header {
-            background: rgba(255,255,255,0.1);
-            border-radius: 20px;
-            padding: 25px;
-            margin-bottom: 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
         }
         
         .header h1 {
-            font-size: 2.2em;
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header h1 span {
             background: linear-gradient(135deg, #667eea, #764ba2);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         
-        .connection-status {
+        .status-badge {
+            display: inline-block;
             padding: 8px 20px;
-            border-radius: 30px;
-            font-weight: 600;
+            border-radius: 25px;
+            font-weight: bold;
+            margin: 5px;
         }
         
-        .status-connected {
-            background: rgba(76,175,80,0.2);
-            color: #4caf50;
-            border: 1px solid #4caf50;
+        .online {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
         }
         
-        .status-disconnected {
-            background: rgba(244,67,54,0.2);
-            color: #f44336;
-            border: 1px solid #f44336;
+        .offline {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
         
-        .latency-badge {
-            background: rgba(255,255,255,0.1);
-            padding: 8px 15px;
-            border-radius: 30px;
-            font-size: 0.9em;
+        .raining {
+            background: #cce5ff;
+            color: #004085;
+            border: 1px solid #b8daff;
+        }
+        
+        .connection-status {
+            background: white;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .connected {
+            color: #28a745;
+        }
+        
+        .disconnected {
+            color: #dc3545;
         }
         
         .grid {
@@ -80,408 +100,598 @@
         }
         
         .card {
-            background: rgba(255,255,255,0.1);
-            border-radius: 20px;
-            padding: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s;
         }
         
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #f0f0f0;
             padding-bottom: 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
         }
         
-        .card-header h3 {
+        .sensor-value {
+            font-size: 3em;
+            font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .tank-level {
+            color: #2196F3;
+        }
+        
+        .soil-moisture {
+            color: #4CAF50;
+        }
+        
+        .rain-value {
+            color: #9C27B0;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #f0f0f0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+        
+        .tank-fill {
+            background: linear-gradient(90deg, #2196F3, #64B5F6);
+        }
+        
+        .soil-fill {
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+        }
+        
+        .rain-fill {
+            background: linear-gradient(90deg, #9C27B0, #BA68C8);
+        }
+        
+        .motor-control {
             display: flex;
             align-items: center;
-            gap: 8px;
-        }
-        
-        .relay-row {
-            display: flex;
             justify-content: space-between;
-            align-items: center;
+            margin: 15px 0;
             padding: 15px;
-            background: rgba(0,0,0,0.3);
+            background: #f8f9fa;
             border-radius: 10px;
-            margin: 10px 0;
         }
         
-        .relay-info {
+        .motor-info {
             display: flex;
             align-items: center;
             gap: 10px;
         }
         
-        .led {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
+        .motor-icon {
+            font-size: 2em;
         }
         
-        .led.on {
-            background: #4caf50;
-            box-shadow: 0 0 15px #4caf50;
-        }
-        
-        .led.off {
-            background: #f44336;
-        }
-        
-        .led.emergency {
-            background: #ff9800;
-            box-shadow: 0 0 15px #ff9800;
-        }
-        
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 30px;
-        }
-        
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #f44336;
-            transition: .3s;
-            border-radius: 30px;
-        }
-        
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 22px;
-            width: 22px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .3s;
-            border-radius: 50%;
-        }
-        
-        input:checked + .slider {
-            background-color: #4caf50;
-        }
-        
-        input:checked + .slider:before {
-            transform: translateX(30px);
-        }
-        
-        .sensor-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        .sensor-value {
+        .motor-status {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.9em;
             font-weight: bold;
-            color: #4caf50;
         }
         
-        .emergency-banner {
-            background: rgba(244,67,54,0.3);
-            border: 2px solid #f44336;
-            border-radius: 10px;
+        .status-on {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-off {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .mode-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            background: #e2e3e5;
+            color: #383d41;
+        }
+        
+        .rain-badge {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 1em;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0;
+        }
+        
+        .rain-active {
+            background: #cce5ff;
+            color: #004085;
+            border: 2px solid #b8daff;
+        }
+        
+        .rain-inactive {
+            background: #fff3cd;
+            color: #856404;
+            border: 2px solid #ffeeba;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .alerts-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .alert-item {
             padding: 15px;
-            margin-bottom: 20px;
-            text-align: center;
-            animation: pulse 1s infinite;
+            margin: 10px 0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
+        .alert-critical {
+            background: #f8d7da;
+            border-left: 5px solid #dc3545;
         }
         
-        .footer {
+        .alert-warning {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            border-left: 5px solid #17a2b8;
+        }
+        
+        .alert-rain {
+            background: #cce5ff;
+            border-left: 5px solid #007bff;
+        }
+        
+        .alert-time {
+            margin-left: auto;
+            font-size: 0.8em;
+            color: #666;
+        }
+        
+        .last-updated {
             text-align: center;
-            margin-top: 30px;
-            color: #888;
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 20px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-size: 1.2em;
+            color: #666;
+        }
+        
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>⚡ SentinelHome Instant Control</h1>
-            <div style="display: flex; gap: 15px;">
-                <div id="connectionStatus" class="connection-status status-disconnected">
-                    🔴 Disconnected
-                </div>
-                <div class="latency-badge">
-                    ⚡ <span id="latency">0</span>ms
-                </div>
+            <h1>🌧️ <span>Smart Water System</span> 💧</h1>
+            <div>
+                <span id="deviceStatus" class="status-badge offline">Device Offline</span>
+                <span id="rainStatus" class="status-badge offline">☀️ No Rain</span>
             </div>
+            <div id="connectionStatus" class="connection-status disconnected">🔴 Connecting to Firebase...</div>
         </div>
         
-        <div id="emergencyBanner" style="display: none;" class="emergency-banner">
-            🚨🚨 FIRE EMERGENCY ACTIVE! 🚨🚨<br>
-            Manual control disabled
-        </div>
-        
-        <!-- Relay Controls -->
         <div class="grid">
+            <!-- Tank Level Card -->
             <div class="card">
-                <div class="card-header">
-                    <h3>💡 Light (Relay 1)</h3>
+                <h2>💧 Tank Level</h2>
+                <div class="sensor-value tank-level" id="tankLevel">--%</div>
+                <div class="progress-bar">
+                    <div class="progress-fill tank-fill" id="tankProgress" style="width: 0%"></div>
                 </div>
-                <div class="relay-row">
-                    <div class="relay-info">
-                        <span id="relay1Led" class="led off"></span>
-                        <span id="relay1Status">OFF</span>
+                <div class="motor-control">
+                    <div class="motor-info">
+                        <span class="motor-icon">⚙️</span>
+                        <span>Tank Motor</span>
                     </div>
-                    <label class="switch">
-                        <input type="checkbox" id="relay1Toggle">
-                        <span class="slider"></span>
-                    </label>
+                    <span class="motor-status" id="tankMotorStatus">OFF</span>
                 </div>
             </div>
             
+            <!-- Soil Moisture Card -->
             <div class="card">
-                <div class="card-header">
-                    <h3>🌀 Fan (Relay 2)</h3>
+                <h2>🌱 Soil Moisture</h2>
+                <div class="sensor-value soil-moisture" id="soilMoisture">--%</div>
+                <div class="progress-bar">
+                    <div class="progress-fill soil-fill" id="soilProgress" style="width: 0%"></div>
                 </div>
-                <div class="relay-row">
-                    <div class="relay-info">
-                        <span id="relay2Led" class="led off"></span>
-                        <span id="relay2Status">OFF</span>
+                <div class="motor-control">
+                    <div class="motor-info">
+                        <span class="motor-icon">🌿</span>
+                        <span>Garden Motor</span>
                     </div>
-                    <label class="switch">
-                        <input type="checkbox" id="relay2Toggle">
-                        <span class="slider"></span>
-                    </label>
+                    <span class="motor-status" id="gardenMotorStatus">OFF</span>
                 </div>
             </div>
             
+            <!-- Rain Sensor Card -->
             <div class="card">
-                <div class="card-header">
-                    <h3>💧 Motor (Relay 3)</h3>
+                <h2>🌧️ Rain Sensor</h2>
+                <div class="sensor-value rain-value" id="rainIntensity">--%</div>
+                <div class="progress-bar">
+                    <div class="progress-fill rain-fill" id="rainProgress" style="width: 0%"></div>
                 </div>
-                <div class="relay-row">
-                    <div class="relay-info">
-                        <span id="relay3Led" class="led off"></span>
-                        <span id="relay3Status">OFF</span>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="relay3Toggle">
-                        <span class="slider"></span>
-                    </label>
+                <div id="rainMessage" class="rain-badge rain-inactive">☀️ No Rain Detected</div>
+                <div class="motor-control">
+                    <span>Raw Value:</span>
+                    <span id="rainRaw">--</span>
                 </div>
             </div>
             
+            <!-- Control Panel Card -->
             <div class="card">
-                <div class="card-header">
-                    <h3>⚡ Emergency (Relay 4)</h3>
+                <h2>🎮 Control Panel</h2>
+                
+                <div class="motor-control">
+                    <span>Mode</span>
+                    <span class="mode-badge" id="modeDisplay">AUTO</span>
                 </div>
-                <div class="relay-row">
-                    <div class="relay-info">
-                        <span id="relay4Led" class="led off"></span>
-                        <span id="relay4Status">OFF</span>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="relay4Toggle">
-                        <span class="slider"></span>
-                    </label>
+                
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="toggleAutoMode()">Toggle AUTO/MANUAL</button>
+                </div>
+                
+                <h3 style="margin: 20px 0 10px">Tank Motor</h3>
+                <div class="btn-group">
+                    <button class="btn btn-success" onclick="sendCommand('tankMotor', 'ON')">ON</button>
+                    <button class="btn btn-danger" onclick="sendCommand('tankMotor', 'OFF')">OFF</button>
+                </div>
+                
+                <h3 style="margin: 20px 0 10px">Garden Motor</h3>
+                <div class="btn-group">
+                    <button class="btn btn-success" onclick="sendCommand('gardenMotor', 'ON')">ON</button>
+                    <button class="btn btn-danger" onclick="sendCommand('gardenMotor', 'OFF')">OFF</button>
+                </div>
+                
+                <div class="btn-group" style="margin-top: 20px">
+                    <button class="btn btn-warning" onclick="sendCommand('mode', 'AUTO')">Set AUTO</button>
+                    <button class="btn btn-warning" onclick="sendCommand('mode', 'MANUAL')">Set MANUAL</button>
+                </div>
+                
+                <div class="btn-group" style="margin-top: 20px">
+                    <button class="btn btn-danger" onclick="emergencyStop()">🚨 EMERGENCY STOP</button>
                 </div>
             </div>
         </div>
         
-        <!-- Sensors -->
-        <div class="grid">
-            <div class="card">
-                <div class="card-header">
-                    <h3>🌡️ Environmental</h3>
-                </div>
-                <div class="sensor-row">
-                    <span>Temperature</span>
-                    <span class="sensor-value" id="temperature">--°C</span>
-                </div>
-                <div class="sensor-row">
-                    <span>Humidity</span>
-                    <span class="sensor-value" id="humidity">--%</span>
-                </div>
-                <div class="sensor-row">
-                    <span>Light Level</span>
-                    <span class="sensor-value" id="lightLevel">--%</span>
-                </div>
-                <div class="sensor-row">
-                    <span>Water Level</span>
-                    <span class="sensor-value" id="waterLevel">--%</span>
-                </div>
-            </div>
-            
-            <div class="card">
-                <div class="card-header">
-                    <h3>⚠️ Hazards</h3>
-                </div>
-                <div class="sensor-row">
-                    <span>🔥 Fire</span>
-                    <span class="sensor-value" id="fireStatus">No</span>
-                </div>
-                <div class="sensor-row">
-                    <span>💨 Smoke</span>
-                    <span class="sensor-value" id="smokeStatus">No</span>
-                </div>
-                <div class="sensor-row">
-                    <span>🌧️ Rain</span>
-                    <span class="sensor-value" id="rainStatus">No</span>
-                </div>
-                <div class="sensor-row">
-                    <span>🚶 Motion</span>
-                    <span class="sensor-value" id="motionStatus">No</span>
-                </div>
-                <div class="sensor-row">
-                    <span>📳 Vibration</span>
-                    <span class="sensor-value" id="vibrationStatus">0</span>
-                </div>
-            </div>
-            
-            <div class="card">
-                <div class="card-header">
-                    <h3>🔔 Buzzer</h3>
-                </div>
-                <div class="sensor-row">
-                    <span>Status</span>
-                    <span class="sensor-value" id="buzzerActive">Inactive</span>
-                </div>
-                <div class="sensor-row">
-                    <span>Reason</span>
-                    <span class="sensor-value" id="buzzerReason">--</span>
-                </div>
-                <div class="relay-row">
-                    <span>Manual Control</span>
-                    <label class="switch">
-                        <input type="checkbox" id="buzzerToggle">
-                        <span class="slider"></span>
-                    </label>
+        <!-- Alerts Section -->
+        <div class="alerts-section">
+            <h2>📢 Alerts & Notifications</h2>
+            <div id="alertsContainer">
+                <div class="alert-item alert-info">
+                    ℹ️ Waiting for alerts...
                 </div>
             </div>
         </div>
         
-        <div class="footer">
-            ⚡ Instant Control - Changes happen in milliseconds!
+        <div class="last-updated" id="lastUpdated">
+            Last updated: --
         </div>
     </div>
-
+    
     <script>
-        // Firebase Config
+        // Firebase Configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyCLdL4teSGiF8f0M5q9LaXoXd1mPoq9lMY",
-            authDomain: "smart-home-dd7e5.firebaseapp.com",
-            databaseURL: "https://smart-home-dd7e5-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "smart-home-dd7e5",
-            storageBucket: "smart-home-dd7e5.firebasestorage.app",
-            messagingSenderId: "230561792370",
-            appId: "1:230561792370:web:f951f576564cb076401deb"
+            apiKey: "AIzaSyDxbDncNNIfYuAIY3tnJDYjXZtcmLuAaNA",
+  authDomain: "aqua-fa925.firebaseapp.com",
+  databaseURL: "https://aqua-fa925-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "aqua-fa925",
+  storageBucket: "aqua-fa925.firebasestorage.app",
+  messagingSenderId: "24671990034",
+  appId: "1:24671990034:web:28405436aae20b6e60c3cb",
+  measurementId: "G-RXP4W066K9"
         };
-
-        // Initialize Firebase
+        
         firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        const database = firebase.database();
         
-        let lastUpdateTime = Date.now();
+        const deviceId = "device_001";
+        let isConnected = false;
         
-        // Connection Status
-        const connectionStatus = document.getElementById('connectionStatus');
-        const latencySpan = document.getElementById('latency');
-        
-        db.ref('.info/connected').on('value', (snap) => {
-            if (snap.val()) {
-                connectionStatus.className = 'connection-status status-connected';
-                connectionStatus.innerHTML = '🟢 Connected';
-                measureLatency();
+        function updateConnectionStatus(status) {
+            const connElement = document.getElementById('connectionStatus');
+            if (status) {
+                connElement.className = 'connection-status connected';
+                connElement.innerHTML = '🟢 Connected to Firebase';
+                isConnected = true;
             } else {
-                connectionStatus.className = 'connection-status status-disconnected';
-                connectionStatus.innerHTML = '🔴 Disconnected';
+                connElement.className = 'connection-status disconnected';
+                connElement.innerHTML = '🔴 Disconnected from Firebase';
+                isConnected = false;
             }
-        });
-        
-        function measureLatency() {
-            const start = Date.now();
-            db.ref('.info/connected').once('value', () => {
-                const latency = Date.now() - start;
-                latencySpan.textContent = latency;
-            });
-            setTimeout(measureLatency, 2000);
         }
         
-        // Monitor Emergency Status
-        db.ref('/system/emergencyActive').on('value', (snapshot) => {
-            const active = snapshot.val();
-            document.getElementById('emergencyBanner').style.display = active ? 'block' : 'none';
+        database.ref('.info/connected').on('value', (snap) => {
+            updateConnectionStatus(snap.val());
         });
         
-        // Relay Controls - INSTANT updates
-        for (let i = 1; i <= 4; i++) {
-            db.ref(`/relay${i}`).on('value', (snapshot) => {
-                const state = snapshot.val();
-                lastUpdateTime = Date.now();
-                
-                document.getElementById(`relay${i}Status`).textContent = state ? 'ON' : 'OFF';
-                document.getElementById(`relay${i}Led`).className = state ? 'led on' : 'led off';
-                
-                const toggle = document.getElementById(`relay${i}Toggle`);
-                if (toggle.checked !== state) {
-                    toggle.checked = state;
+        function listenToDeviceData() {
+            const dataRef = database.ref(`/devices/${deviceId}/data`);
+            
+            dataRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    updateUI(data);
                 }
             });
+        }
+        
+        function updateUI(data) {
+            // Tank level
+            if (data.sensors?.tankLevel !== undefined) {
+                const tankLevel = data.sensors.tankLevel;
+                document.getElementById('tankLevel').textContent = tankLevel + '%';
+                document.getElementById('tankProgress').style.width = tankLevel + '%';
+            }
             
-            document.getElementById(`relay${i}Toggle`).addEventListener('change', (e) => {
-                const newState = e.target.checked;
-                db.ref(`/relay${i}`).set(newState);
+            // Soil moisture
+            if (data.sensors?.soilMoisture !== undefined) {
+                const soilMoisture = data.sensors.soilMoisture;
+                document.getElementById('soilMoisture').textContent = soilMoisture + '%';
+                document.getElementById('soilProgress').style.width = soilMoisture + '%';
+            }
+            
+            // Rain sensor
+            if (data.sensors?.rainValue !== undefined) {
+                document.getElementById('rainRaw').textContent = data.sensors.rainValue;
+            }
+            
+            if (data.sensors?.rainIntensity !== undefined) {
+                const intensity = data.sensors.rainIntensity;
+                document.getElementById('rainIntensity').textContent = intensity + '%';
+                document.getElementById('rainProgress').style.width = intensity + '%';
+            }
+            
+            if (data.sensors?.isRaining !== undefined) {
+                const isRaining = data.sensors.isRaining;
+                const rainMessage = document.getElementById('rainMessage');
+                const rainStatus = document.getElementById('rainStatus');
                 
-                document.getElementById(`relay${i}Status`).textContent = newState ? 'ON' : 'OFF';
-                document.getElementById(`relay${i}Led`).className = newState ? 'led on' : 'led off';
+                if (isRaining) {
+                    rainMessage.className = 'rain-badge rain-active';
+                    rainMessage.innerHTML = '🌧️ Rain Detected - Garden Watering Disabled';
+                    rainStatus.className = 'status-badge raining';
+                    rainStatus.innerHTML = '🌧️ Raining';
+                } else {
+                    rainMessage.className = 'rain-badge rain-inactive';
+                    rainMessage.innerHTML = '☀️ No Rain Detected';
+                    rainStatus.className = 'status-badge online';
+                    rainStatus.innerHTML = '☀️ No Rain';
+                }
+            }
+            
+            // Motor status
+            if (data.motors?.tankMotor !== undefined) {
+                const tankMotor = document.getElementById('tankMotorStatus');
+                if (data.motors.tankMotor) {
+                    tankMotor.textContent = 'ON';
+                    tankMotor.className = 'motor-status status-on';
+                } else {
+                    tankMotor.textContent = 'OFF';
+                    tankMotor.className = 'motor-status status-off';
+                }
+            }
+            
+            if (data.motors?.gardenMotor !== undefined) {
+                const gardenMotor = document.getElementById('gardenMotorStatus');
+                if (data.motors.gardenMotor) {
+                    gardenMotor.textContent = 'ON';
+                    gardenMotor.className = 'motor-status status-on';
+                } else {
+                    gardenMotor.textContent = 'OFF';
+                    gardenMotor.className = 'motor-status status-off';
+                }
+            }
+            
+            // Mode
+            if (data.motors?.autoMode !== undefined) {
+                const mode = document.getElementById('modeDisplay');
+                mode.textContent = data.motors.autoMode ? 'AUTO' : 'MANUAL';
+            }
+            
+            // Last updated
+            if (data.lastUpdate) {
+                const date = new Date(data.lastUpdate);
+                document.getElementById('lastUpdated').textContent = 
+                    'Last updated: ' + date.toLocaleTimeString();
+            }
+            
+            document.getElementById('deviceStatus').className = 'status-badge online';
+            document.getElementById('deviceStatus').textContent = 'Device Online';
+        }
+        
+        function sendCommand(command, value) {
+            if (!isConnected) {
+                alert('Not connected to Firebase!');
+                return;
+            }
+            
+            const commandRef = database.ref(`/devices/${deviceId}/commands/${command}`);
+            commandRef.set(value)
+                .then(() => {
+                    showAlert('info', `Command sent: ${command} = ${value}`);
+                })
+                .catch((error) => {
+                    console.error('Command error:', error);
+                    alert('Failed to send command');
+                });
+        }
+        
+        function toggleAutoMode() {
+            const currentMode = document.getElementById('modeDisplay').textContent;
+            const newMode = currentMode === 'AUTO' ? 'MANUAL' : 'AUTO';
+            sendCommand('mode', newMode);
+        }
+        
+        function emergencyStop() {
+            if (confirm('🚨 EMERGENCY STOP: Turn off all motors?')) {
+                sendCommand('tankMotor', 'OFF');
+                sendCommand('gardenMotor', 'OFF');
+                showAlert('critical', '🚨 EMERGENCY STOP activated!');
+            }
+        }
+        
+        function showAlert(type, message) {
+            const container = document.getElementById('alertsContainer');
+            const alertDiv = document.createElement('div');
+            
+            let alertClass = 'alert-info';
+            if (type === 'critical') alertClass = 'alert-critical';
+            if (type === 'warning') alertClass = 'alert-warning';
+            if (type === 'rain') alertClass = 'alert-rain';
+            
+            const time = new Date().toLocaleTimeString();
+            
+            alertDiv.className = `alert-item ${alertClass}`;
+            alertDiv.innerHTML = `
+                ${type === 'critical' ? '🚨' : type === 'warning' ? '⚠️' : type === 'rain' ? '🌧️' : 'ℹ️'}
+                ${message}
+                <span class="alert-time">${time}</span>
+            `;
+            
+            container.insertBefore(alertDiv, container.firstChild);
+            
+            while (container.children.length > 5) {
+                container.removeChild(container.lastChild);
+            }
+        }
+        
+        function listenToAlerts() {
+            const alertsRef = database.ref(`/devices/${deviceId}/alerts`);
+            
+            alertsRef.on('child_added', (snapshot) => {
+                const alert = snapshot.val();
+                if (alert) {
+                    showAlert(alert.type || 'info', alert.message || 'New alert');
+                }
             });
         }
         
-        // Buzzer Control
-        db.ref('/buzzer').on('value', (snapshot) => {
-            const state = snapshot.val();
-            document.getElementById('buzzerToggle').checked = state;
-        });
+        function init() {
+            console.log('Initializing dashboard...');
+            listenToDeviceData();
+            listenToAlerts();
+            showAlert('info', 'Dashboard initialized. Waiting for data...');
+        }
         
-        document.getElementById('buzzerToggle').addEventListener('change', (e) => {
-            db.ref('/buzzer').set(e.target.checked);
-        });
-        
-        // Monitor all sensors
-        db.ref('/sensors').on('value', (snapshot) => {
-            const data = snapshot.val() || {};
-            
-            document.getElementById('temperature').textContent = (data.temperature || 0).toFixed(1) + '°C';
-            document.getElementById('humidity').textContent = (data.humidity || 0).toFixed(1) + '%';
-            document.getElementById('lightLevel').textContent = (data.light || 0) + '%';
-            document.getElementById('waterLevel').textContent = (data.water || 0) + '%';
-            
-            document.getElementById('fireStatus').textContent = data.fire ? '🔥 DETECTED' : 'No';
-            document.getElementById('smokeStatus').textContent = data.smoke ? '💨 DETECTED' : 'No';
-            document.getElementById('rainStatus').textContent = data.rain ? '🌧️ YES' : 'No';
-            document.getElementById('motionStatus').textContent = data.motion ? '🚶 YES' : 'No';
-            
-            document.getElementById('vibrationStatus').textContent = data.vibrationCount || 0;
-            
-            document.getElementById('buzzerActive').textContent = data.buzzerActive ? 'ACTIVE' : 'Inactive';
-            document.getElementById('buzzerReason').textContent = data.buzzerReason || '--';
-        });
-        
-        console.log('✅ Instant Control Dashboard Ready');
+        window.onload = init;
     </script>
 </body>
 </html>
